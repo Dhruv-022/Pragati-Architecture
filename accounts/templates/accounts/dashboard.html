@@ -44,7 +44,7 @@
 
     <p>
     Logged in as: <strong>{{ request.user.username }}</strong> ({{ request.user.get_role_display }}) 
-    | <a href="{% url 'logout' %}">Log Out</a>
+    | <a href="{% url 'admin_logout' %}">Log Out</a>
 </p>
 </body>
 </html>

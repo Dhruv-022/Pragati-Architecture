@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Control Panel — Administrator Login</title>
+    <style>
+        body {
+            background-color: #0d1117;
+            color: #c9d1d9;
+            font-family: system-ui, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .admin-card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-top: 4px solid #d97706; /* Amber accent for Admin distinction */
+            padding: 32px;
+            border-radius: 8px;
+            width: 360px;
+        }
+        .admin-card h2 { margin-top: 0; color: #f59e0b; font-size: 18px; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 12px; margin-bottom: 6px; }
+        .form-group input {
+            width: 100%; box-sizing: border-box; padding: 10px;
+            background: #0d1117; border: 1px solid #30363d; color: white; border-radius: 4px;
+        }
+        .btn-admin {
+            width: 100%; padding: 10px; background: #d97706; border: none;
+            color: white; font-weight: bold; border-radius: 4px; cursor: pointer;
+        }
+        .btn-admin:hover { background: #b45309; }
+        .error-msg { background: rgba(220, 38, 38, 0.2); border: 1px solid #dc2626; padding: 8px; font-size: 12px; border-radius: 4px; margin-bottom: 16px; color: #fca5a5; }
+    </style>
+</head>
+<body>
+
+<div class="admin-card">
+    <h2>🔒 Admin Control Panel Login</h2>
+    <p style="font-size: 12px; color: #8b949e; margin-bottom: 20px;">Restricted access for System & District Administrators</p>
+
+    {% if form.errors %}
+    <div class="error-msg">Invalid Administrator credentials.</div>
+    {% endif %}
+
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            <label>Admin User ID</label>
+            <input type="text" name="username" required autofocus>
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" name="password" required>
+        </div>
+        <button type="submit" class="btn-admin">Authenticate to Control Panel</button>
+    </form>
+</div>
+
+</body>
+</html>
