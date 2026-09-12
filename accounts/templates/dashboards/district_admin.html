@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>District Operational Dashboard</title>
+</head>
+<body style="font-family: sans-serif; margin: 30px;">
+    <h2>District Administrator Operational Workspace</h2>
+    <p>Welcome, <strong>{{ request.user.username }}</strong> | Scope: <strong>{{ request.user.jurisdiction.name }}</strong></p>
+    
+    <div style="margin: 20px 0;">
+        <!-- Quick button to access the user control panel we built earlier -->
+        <a href="{% url 'admin_dashboard' %}" style="padding: 10px 18px; background: #007bff; color: white; text-decoration: none; border-radius: 4px; font-weight: bold;">
+            ⚙️ Manage District Users & Officers
+        </a>
+        <a href="{% url 'logout' %}" style="margin-left: 15px; color: #dc3545;">Log Out</a>
+    </div>
+
+    <hr>
+    
+    <h3>District Summary (Preview)</h3>
+    <ul>
+        <li>Assigned Jurisdiction: {{ request.user.jurisdiction.name }}</li>
+        <li>Active Officers Managed: {{ request.user.jurisdiction.users.count }}</li>
+    </ul>
+</body>
+</html>

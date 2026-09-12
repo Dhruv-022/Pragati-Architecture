@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Create User Account</title>
+</head>
+<body style="font-family: sans-serif; margin: 30px;">
+    <h2>Provision New User Account</h2>
+    <form method="POST" style="max-width: 500px;">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">Save & Create Account</button>
+    </form>
+    <br>
+    <a href="{% url 'admin_dashboard' %}">&larr; Back to Dashboard</a>
+</body>
+</html>

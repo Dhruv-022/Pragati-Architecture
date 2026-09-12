@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Investigation Operations</title>
+</head>
+<body style="font-family: sans-serif; padding: 30px;">
+    <h2>Investigator Case Workspace</h2>
+    <p>Welcome, <strong>{{ request.user.username }}</strong> | Jurisdiction: <strong>{{ request.user.jurisdiction.name }}</strong></p>
+    <p><a href="{% url 'logout' %}">Log Out</a></p>
+</body>
+</html>

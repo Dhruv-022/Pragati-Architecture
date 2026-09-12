@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>System Admin Panel</title>
+</head>
+<body style="font-family: sans-serif; margin: 30px;">
+    <h2>MPLADS Monitoring - Admin Control Center</h2>
+    <p>Logged in as: <strong>{{ request.user.username }}</strong> ({{ request.user.get_role_display }})</p>
+    <p>Jurisdiction: <strong>{{ request.user.jurisdiction.name|default:"Global System Scope" }}</strong></p>
+    
+    <a href="{% url 'create_user' %}" style="display: inline-block; padding: 8px 16px; background: #007bff; color: white; text-decoration: none; border-radius: 4px;">+ Create New User</a>
+    <hr style="margin-top: 20px; margin-bottom: 20px;">
+
+    <h3>Managed User Directory</h3>
+    <table border="1" cellpadding="10" cellspacing="0" style="width: 100%; border-collapse: collapse;">
+        <thead style="background-color: #f2f2f2;">
+            <tr>
+                <th>User ID</th>
+                <th>Username</th>
+                <th>Full Name</th>
+                <th>Role</th>
+                <th>Jurisdiction</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in users %}
+            <tr>
+                <td>{{ u.user_id }}</td>
+                <td>{{ u.username }}</td>
+                <td>{{ u.get_full_name|default:"--" }}</td>
+                <td>{{ u.get_role_display }}</td>
+                <td>{{ u.jurisdiction.name|default:"Global" }}</td>
+                <td>{{ u.get_status_display }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" style="text-align: center;">No users found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <p>
+    Logged in as: <strong>{{ request.user.username }}</strong> ({{ request.user.get_role_display }}) 
+    | <a href="{% url 'logout' %}">Log Out</a>
+</p>
+</body>
+</html>
