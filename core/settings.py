@@ -25,7 +25,12 @@ SECRET_KEY = 'django-insecure-44caou2(m8pz5*f(#7fps5moal4fz0jh#rktu=)==@1&s6-qrj
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    '3.106.201.246',  # Your EC2 Public IPv4
+    'localhost',
+    '127.0.0.1',
+    '*',
+]
 
 
 INSTALLED_APPS = [
@@ -119,7 +124,8 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-
+import os
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 
