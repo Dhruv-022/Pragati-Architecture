@@ -2,64 +2,303 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Control Panel — Administrator Login</title>
     <style>
+        :root {
+            --glass-bg: rgba(15, 23, 42, 0.7);
+            --glass-border: rgba(245, 158, 11, 0.25);
+            --glass-glow: rgba(245, 158, 11, 0.35);
+            --accent-amber: #f59e0b;
+            --accent-gold: #fbbf24;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --error-bg: rgba(239, 68, 68, 0.2);
+            --error-border: rgba(239, 68, 68, 0.4);
+            --error-text: #fca5a5;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
         body {
-            background-color: #0d1117;
-            color: #c9d1d9;
-            font-family: system-ui, sans-serif;
+            background-color: #070a12;
+            color: var(--text-main);
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
+            min-height: 100vh;
+            padding: 20px;
+            overflow: hidden;
+            position: relative;
         }
-        .admin-card {
-            background: #161b22;
-            border: 1px solid #30363d;
-            border-top: 4px solid #d97706; /* Amber accent for Admin distinction */
-            padding: 32px;
-            border-radius: 8px;
+
+        /* Ambient Amber & Gold Orbs for Executive Admin Theme */
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            z-index: 0;
+            opacity: 0.55;
+            animation: float 14s infinite alternate ease-in-out;
+        }
+
+        .orb-1 {
             width: 360px;
+            height: 360px;
+            background: linear-gradient(135deg, #d97706, #f59e0b);
+            top: 10%;
+            left: 18%;
         }
-        .admin-card h2 { margin-top: 0; color: #f59e0b; font-size: 18px; }
-        .form-group { margin-bottom: 16px; }
-        .form-group label { display: block; font-size: 12px; margin-bottom: 6px; }
+
+        .orb-2 {
+            width: 420px;
+            height: 420px;
+            background: linear-gradient(135deg, #b45309, #7c3aed);
+            bottom: 8%;
+            right: 18%;
+            animation-delay: -7s;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(35px, -45px) scale(1.1); }
+        }
+
+        .admin-wrapper {
+            width: 100%;
+            max-width: 420px;
+            z-index: 10;
+        }
+
+        /* Glassmorphic Admin Card with Glowing Hover Effect */
+        .admin-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 44px 36px;
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.9),
+                        0 0 0 1px rgba(245, 158, 11, 0.1);
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.4s ease, box-shadow 0.4s ease;
+        }
+
+        /* Top Amber Accent Line */
+        .admin-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--accent-amber), var(--accent-gold), transparent);
+            opacity: 0.85;
+        }
+
+        .admin-card:hover {
+            border-color: rgba(245, 158, 11, 0.5);
+            box-shadow: 0 20px 45px -15px rgba(0, 0, 0, 0.95),
+                        0 0 35px var(--glass-glow);
+        }
+
+        .brand-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .brand-icon {
+            font-size: 38px;
+            margin-bottom: 8px;
+            display: inline-block;
+            filter: drop-shadow(0 0 14px rgba(245, 158, 11, 0.6));
+            transition: transform 0.3s ease;
+        }
+
+        .admin-card:hover .brand-icon {
+            transform: rotate(-6deg) scale(1.05);
+        }
+
+        .brand-header h2 {
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            background: linear-gradient(135deg, #ffffff, var(--accent-gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+        }
+
+        .brand-header p {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 6px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: #cbd5e1;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
         .form-group input {
-            width: 100%; box-sizing: border-box; padding: 10px;
-            background: #0d1117; border: 1px solid #30363d; color: white; border-radius: 4px;
+            width: 100%;
+            padding: 12px 42px 12px 14px;
+            background: rgba(15, 23, 42, 0.75);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            color: var(--text-main);
+            font-size: 14px;
+            outline: none;
+            transition: all 0.25s ease;
         }
+
+        .form-group input:focus {
+            border-color: var(--accent-amber);
+            background: rgba(15, 23, 42, 0.95);
+            box-shadow: 0 0 18px rgba(245, 158, 11, 0.3);
+        }
+
+        .pwd-toggle-btn {
+            position: absolute;
+            right: 12px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 15px;
+            padding: 4px;
+            transition: color 0.2s, transform 0.2s;
+            user-select: none;
+        }
+
+        .pwd-toggle-btn:hover {
+            color: var(--accent-gold);
+            transform: scale(1.15);
+        }
+
         .btn-admin {
-            width: 100%; padding: 10px; background: #d97706; border: none;
-            color: white; font-weight: bold; border-radius: 4px; cursor: pointer;
+            width: 100%;
+            padding: 13px;
+            background: linear-gradient(135deg, #d97706, #f59e0b);
+            color: #070a12;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+            margin-top: 10px;
         }
-        .btn-admin:hover { background: #b45309; }
-        .error-msg { background: rgba(220, 38, 38, 0.2); border: 1px solid #dc2626; padding: 8px; font-size: 12px; border-radius: 4px; margin-bottom: 16px; color: #fca5a5; }
+
+        .btn-admin:hover {
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.6);
+            background: linear-gradient(135deg, #b45309, #d97706);
+            color: #ffffff;
+        }
+
+        .error-msg {
+            background: var(--error-bg);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--error-border);
+            color: var(--error-text);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            margin-bottom: 20px;
+            line-height: 1.4;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .footer-note {
+            text-align: center;
+            margin-top: 26px;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
     </style>
 </head>
 <body>
 
-<div class="admin-card">
-    <h2>🔒 Admin Control Panel Login</h2>
-    <p style="font-size: 12px; color: #8b949e; margin-bottom: 20px;">Restricted access for System & District Administrators</p>
+    <!-- Glass Orbs -->
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
 
-    {% if form.errors %}
-    <div class="error-msg">Invalid Administrator credentials.</div>
-    {% endif %}
+    <div class="admin-wrapper">
+        <div class="admin-card">
+            <div class="brand-header">
+                <div class="brand-icon">⚙️</div>
+                <h2>Control Panel Login</h2>
+                <p>Restricted access for System & District Administrators</p>
+            </div>
 
-    <form method="POST">
-        {% csrf_token %}
-        <div class="form-group">
-            <label>Admin User ID</label>
-            <input type="text" name="username" required autofocus>
+            {% if form.errors %}
+            <div class="error-msg">
+                ⚠️ Invalid Administrator credentials. Access Denied.
+            </div>
+            {% endif %}
+
+            <form method="POST">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="id_username">Admin User ID</label>
+                    <div class="input-container">
+                        <input type="text" name="username" id="id_username" required autofocus placeholder="e.g. SYS-001 or ADM-001">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="id_password">Password</label>
+                    <div class="input-container">
+                        <input type="password" name="password" id="id_password" required placeholder="••••••••">
+                        <button type="button" class="pwd-toggle-btn" id="togglePwd" title="Toggle Password Visibility">👁️</button>
+                    </div>
+                </div>
+                <button type="submit" class="btn-admin">Authenticate to Control Panel</button>
+            </form>
+
+            <div class="footer-note">
+                ⚡ Executive Command Access — Operations Monitored
+            </div>
         </div>
-        <div class="form-group">
-            <label>Password</label>
-            <input type="password" name="password" required>
-        </div>
-        <button type="submit" class="btn-admin">Authenticate to Control Panel</button>
-    </form>
-</div>
+    </div>
 
+    <script>
+        const pwdInput = document.getElementById('id_password');
+        const toggleBtn = document.getElementById('togglePwd');
+
+        toggleBtn.addEventListener('click', function () {
+            if (pwdInput.type === 'password') {
+                pwdInput.type = 'text';
+                toggleBtn.textContent = '🙈';
+            } else {
+                pwdInput.type = 'password';
+                toggleBtn.textContent = '👁️';
+            }
+        });
+    </script>
 </body>
 </html>

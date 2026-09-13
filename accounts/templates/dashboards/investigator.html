@@ -2,11 +2,305 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Investigation Operations</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investigator Workspace — MPLADS Glass Portal</title>
+    <style>
+        :root {
+            --glass-bg: rgba(15, 23, 42, 0.65);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --glass-glow: rgba(239, 68, 68, 0.35);
+            --accent-red: #f87171;
+            --accent-purple: #c084fc;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: #070a12;
+            color: var(--text-main);
+            padding: 32px;
+            margin: 0;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Ambient Glass Background Orbs */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(100px);
+            z-index: 0;
+            opacity: 0.45;
+            pointer-events: none;
+            animation: float 14s infinite alternate ease-in-out;
+        }
+
+        .orb-1 {
+            width: 420px;
+            height: 420px;
+            background: linear-gradient(135deg, #dc2626, #7c3aed);
+            top: -60px;
+            left: -60px;
+        }
+
+        .orb-2 {
+            width: 500px;
+            height: 500px;
+            background: linear-gradient(135deg, #0284c7, #991b1b);
+            bottom: -100px;
+            right: -100px;
+            animation-delay: -7s;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(40px, -30px) scale(1.08); }
+        }
+
+        .main-container {
+            position: relative;
+            z-index: 10;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Glass Header */
+        .header {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 20px 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            background: linear-gradient(135deg, #ffffff, var(--accent-red));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header small {
+            color: var(--text-muted);
+            font-size: 13px;
+            margin-top: 4px;
+            display: block;
+        }
+
+        .logout-link {
+            color: #f87171;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.2s;
+        }
+
+        .logout-link:hover {
+            color: #ef4444;
+            text-decoration: underline;
+        }
+
+        /* Audit Card with Glowing Red Hover Effect */
+        .card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            border-radius: 16px;
+            padding: 22px;
+            max-width: 280px;
+            margin-bottom: 32px;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.4s ease, box-shadow 0.4s ease;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #ef4444, transparent);
+            opacity: 0.8;
+        }
+
+        .card:hover {
+            border-color: #ef4444;
+            box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.8),
+                        0 0 25px var(--glass-glow);
+        }
+
+        .card h4 {
+            margin: 0 0 8px 0;
+            color: var(--text-muted);
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .card .val {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--accent-red);
+        }
+
+        h2 {
+            font-size: 16px;
+            font-weight: 700;
+            color: #f0f6fc;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Glass Table */
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 32px;
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+        }
+
+        th, td {
+            padding: 14px 18px;
+            text-align: left;
+            font-size: 13px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        th {
+            background: rgba(15, 23, 42, 0.85);
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+
+        tbody tr {
+            transition: background 0.2s ease;
+        }
+
+        tbody tr:hover {
+            background: rgba(239, 68, 68, 0.05);
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Custom Badges */
+        .officer-badge {
+            background: rgba(168, 85, 247, 0.15);
+            color: var(--accent-purple);
+            border: 1px solid rgba(168, 85, 247, 0.4);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            display: inline-block;
+            backdrop-filter: blur(8px);
+        }
+
+        .audit-status {
+            color: var(--accent-red);
+            font-weight: 700;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            display: inline-block;
+        }
+    </style>
 </head>
-<body style="font-family: sans-serif; padding: 30px;">
-    <h2>Investigator Case Workspace</h2>
-    <p>Welcome, <strong>{{ request.user.username }}</strong> | Jurisdiction: <strong>{{ request.user.jurisdiction.name }}</strong></p>
-    <p><a href="{% url 'logout' %}">Log Out</a></p>
+<body>
+
+    <!-- Glass Ambient Background Orbs -->
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+
+    <div class="main-container">
+
+        <!-- Header -->
+        <div class="header">
+            <div>
+                <h1>🚨 Investigation & Field Audit Control — {{ jurisdiction_name }}</h1>
+                <small>Logged in as: <strong>{{ request.user.username }}</strong> (Investigator Officer) | <a href="{% url 'logout' %}" class="logout-link">Log Out</a></small>
+            </div>
+        </div>
+
+        <!-- Audit Counter Card -->
+        <div class="card">
+            <h4>Pending Audit Cases</h4>
+            <div class="val">{{ total_audits }}</div>
+        </div>
+
+        <!-- Flagged Projects Table -->
+        <h2>🔍 Recommended Investigation Cases</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Project ID</th>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th>Recommended By (Monitoring Officer)</th>
+                    <th>Audit Reason</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for project in flagged_projects %}
+                <tr>
+                    <td><strong>{{ project.project_id }}</strong></td>
+                    <td>{{ project.title }}</td>
+                    <td>{{ project.category }}</td>
+                    <td>
+                        {% if project.flagged_by %}
+                            <span class="officer-badge">👤 {{ project.flagged_by.get_full_name|default:project.flagged_by.username }}</span>
+                        {% else %}
+                            <span style="color: var(--text-muted);">System Flagged</span>
+                        {% endif %}
+                    </td>
+                    <td><em style="color: #cbd5e1;">{{ project.investigation_reason|default:"No notes provided." }}</em></td>
+                    <td><span class="audit-status">Under Investigation</span></td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="text-align: center; color: var(--text-muted);">No projects currently flagged for investigation in {{ jurisdiction_name }}.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+    </div>
+
 </body>
 </html>

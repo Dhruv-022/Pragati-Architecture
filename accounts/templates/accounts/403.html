@@ -2,17 +2,175 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>403 - Access Denied</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>403 Access Restricted — MPLADS Command Portal</title>
+    <style>
+        :root {
+            /* Secure Executive Theme Palette */
+            --glass-bg: rgba(15, 23, 42, 0.75);
+            --glass-border: rgba(148, 163, 184, 0.15);
+            --accent-blue: #38bdf8;
+            --accent-rose: #f43f5e;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: #0b0f19;
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            margin: 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Ambient Glass Background Orbs */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(120px);
+            z-index: 0;
+            opacity: 0.4;
+            pointer-events: none;
+            animation: float 14s infinite alternate ease-in-out;
+        }
+
+        .orb-1 {
+            width: 450px;
+            height: 450px;
+            background: linear-gradient(135deg, #dc2626, #1e293b);
+            top: 10%;
+            left: 15%;
+        }
+
+        .orb-2 {
+            width: 500px;
+            height: 500px;
+            background: linear-gradient(135deg, #991b1b, #0f172a);
+            bottom: 10%;
+            right: 15%;
+            animation-delay: -7s;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(30px, -20px) scale(1.05); }
+        }
+
+        .error-wrapper {
+            width: 100%;
+            max-width: 460px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Glass Error Card */
+        .error-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(244, 63, 94, 0.3);
+            border-radius: 20px;
+            padding: 44px 36px;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8),
+                        0 0 35px rgba(244, 63, 94, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .error-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, transparent, #f43f5e, transparent);
+        }
+
+        .error-code {
+            color: var(--accent-rose);
+            font-size: 64px;
+            font-weight: 900;
+            margin: 0;
+            line-height: 1;
+            letter-spacing: 2px;
+            text-shadow: 0 0 20px rgba(244, 63, 94, 0.4);
+        }
+
+        h2 {
+            margin: 12px 0 16px 0;
+            color: #f8fafc;
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+
+        .error-message {
+            color: var(--text-muted);
+            font-size: 13px;
+            line-height: 1.6;
+            margin-bottom: 24px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 14px;
+            border-radius: 10px;
+        }
+
+        .role-highlight {
+            color: #fca5a5;
+            font-weight: 700;
+        }
+
+        .btn-action {
+            display: inline-block;
+            width: 100%;
+            padding: 13px 20px;
+            background: linear-gradient(135deg, #0284c7, #0369a1);
+            color: white;
+            text-decoration: none;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(2, 132, 199, 0.25);
+        }
+
+        .btn-action:hover {
+            background: linear-gradient(135deg, #0369a1, #075985);
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+            transform: translateY(-1px);
+        }
+    </style>
 </head>
-<body style="font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f8f9fa;">
-    <div style="text-align: center; background: white; padding: 40px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 400px;">
-        <h1 style="color: #dc3545; font-size: 48px; margin: 0;">403</h1>
-        <h2>Access Denied</h2>
-        <p style="color: #6c757d;">
-            You are signed in as <strong>{{ request.user.get_role_display|default:request.user.username }}</strong>, which does not have administrative privileges for this control center.
-        </p>
-        <hr style="margin: 20px 0;">
-        <a href="{% url 'logout' %}" style="display: inline-block; padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 4px; font-weight: bold;">Log Out & Switch Account</a>
+<body>
+
+    <!-- Ambient Background Orbs -->
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+
+    <div class="error-wrapper">
+        <div class="error-card">
+            <h1 class="error-code">403</h1>
+            <h2>Access Restricted</h2>
+            
+            <div class="error-message">
+                You are currently signed in as <span class="role-highlight">{{ request.user.get_role_display|default:request.user.username }}</span>. Your security tier does not grant administrative privileges for this control center.
+            </div>
+
+            <a href="{% url 'logout' %}" class="btn-action">🔒 Log Out & Switch Account</a>
+        </div>
     </div>
+
 </body>
 </html>

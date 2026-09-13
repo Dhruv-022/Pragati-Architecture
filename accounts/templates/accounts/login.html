@@ -3,18 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MPLADS Monitoring System — Sign In</title>
+    <title>MPLADS Monitoring System — Glass Portal Sign In</title>
     <style>
         :root {
-            --bg-main: #0b0f19;
-            --card-bg: #151c2c;
-            --border-color: #232d42;
-            --accent-blue: #0284c7;
-            --accent-hover: #0369a1;
+            --glass-bg: rgba(15, 23, 42, 0.65);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --glass-glow: rgba(56, 189, 248, 0.35);
+            --card-hover-glow: rgba(2, 132, 199, 0.45);
+            --accent-cyan: #38bdf8;
+            --accent-blue: #2563eb;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
-            --error-bg: rgba(239, 68, 68, 0.12);
-            --error-border: #ef4444;
+            --error-bg: rgba(239, 68, 68, 0.2);
+            --error-border: rgba(239, 68, 68, 0.4);
             --error-text: #fca5a5;
         }
 
@@ -22,30 +23,97 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
         }
 
         body {
-            background-color: var(--bg-main);
+            background-color: #070a12;
             color: var(--text-main);
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             padding: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Ambient Glass Orbs */
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(90px);
+            z-index: 0;
+            opacity: 0.6;
+            animation: float 12s infinite alternate ease-in-out;
+        }
+
+        .orb-1 {
+            width: 340px;
+            height: 340px;
+            background: linear-gradient(135deg, #0284c7, #2563eb);
+            top: 15%;
+            left: 20%;
+        }
+
+        .orb-2 {
+            width: 400px;
+            height: 400px;
+            background: linear-gradient(135deg, #7c3aed, #d97706);
+            bottom: 10%;
+            right: 20%;
+            animation-delay: -6s;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(30px, -40px) scale(1.1); }
         }
 
         .login-wrapper {
             width: 100%;
-            max-width: 420px;
+            max-width: 440px;
+            z-index: 10;
         }
 
+        /* Glassmorphic Card (No Pop-up / Movement) */
         .login-card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 40px 32px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 44px 36px;
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.8),
+                        0 0 0 1px rgba(255, 255, 255, 0.05);
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.4s ease, box-shadow 0.4s ease;
+        }
+
+        /* Top Accent Highlight Line */
+        .login-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
+            opacity: 0.7;
+            transition: opacity 0.4s ease;
+        }
+
+        /* Glowing Shadow Hover Effect Only */
+        .login-card:hover {
+            border-color: rgba(56, 189, 248, 0.4);
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.9),
+                        0 0 30px var(--card-hover-glow),
+                        0 0 60px rgba(56, 189, 248, 0.15);
+        }
+
+        .login-card:hover::before {
+            opacity: 1;
         }
 
         .brand-header {
@@ -53,11 +121,26 @@
             margin-bottom: 32px;
         }
 
+        /* Tilting Parliament Emoji */
+        .brand-icon {
+            font-size: 36px;
+            margin-bottom: 8px;
+            display: inline-block;
+            filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.6));
+            transition: transform 0.3s ease;
+        }
+
+        .login-card:hover .brand-icon {
+            transform: rotate(-6deg) scale(1.05);
+        }
+
         .brand-header h1 {
-            font-size: 20px;
-            font-weight: 700;
-            letter-spacing: 1px;
-            color: #38bdf8;
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            background: linear-gradient(135deg, #ffffff, var(--accent-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
             text-transform: uppercase;
         }
 
@@ -65,10 +148,12 @@
             font-size: 13px;
             color: var(--text-muted);
             margin-top: 6px;
+            letter-spacing: 0.5px;
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 22px;
+            position: relative;
         }
 
         .form-group label {
@@ -79,99 +164,158 @@
             margin-bottom: 8px;
         }
 
+        .input-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
         .form-group input {
             width: 100%;
-            padding: 12px 14px;
-            background-color: #0b0f19;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
+            padding: 13px 42px 13px 14px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
             color: var(--text-main);
             font-size: 14px;
             outline: none;
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            transition: all 0.25s ease;
         }
 
         .form-group input:focus {
-            border-color: #38bdf8;
-            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+            border-color: var(--accent-cyan);
+            background: rgba(15, 23, 42, 0.85);
+            box-shadow: 0 0 18px var(--glass-glow);
+        }
+
+        .pwd-toggle-btn {
+            position: absolute;
+            right: 12px;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 15px;
+            padding: 4px;
+            transition: color 0.2s, transform 0.2s;
+            user-select: none;
+        }
+
+        .pwd-toggle-btn:hover {
+            color: var(--accent-cyan);
+            transform: scale(1.15);
         }
 
         .btn-submit {
             width: 100%;
-            padding: 12px;
-            background-color: var(--accent-blue);
+            padding: 13px;
+            background: linear-gradient(135deg, #0284c7, #2563eb);
             color: #ffffff;
             border: none;
-            border-radius: 6px;
+            border-radius: 10px;
             font-size: 14px;
-            font-weight: 600;
+            font-weight: 700;
             cursor: pointer;
-            transition: background-color 0.2s ease;
-            margin-top: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(2, 132, 199, 0.3);
+            margin-top: 10px;
         }
 
         .btn-submit:hover {
-            background-color: var(--accent-hover);
+            box-shadow: 0 8px 25px rgba(2, 132, 199, 0.6), 0 0 15px rgba(56, 189, 248, 0.4);
+            background: linear-gradient(135deg, #0369a1, #1d4ed8);
         }
 
         .error-alert {
-            background-color: var(--error-bg);
+            background: var(--error-bg);
+            backdrop-filter: blur(8px);
             border: 1px solid var(--error-border);
             color: var(--error-text);
-            padding: 12px;
-            border-radius: 6px;
+            padding: 12px 14px;
+            border-radius: 8px;
             font-size: 13px;
             margin-bottom: 24px;
             line-height: 1.4;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .footer-note {
             text-align: center;
-            margin-top: 24px;
+            margin-top: 28px;
             font-size: 12px;
             color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
         }
     </style>
 </head>
 <body>
 
-<div class="login-wrapper">
-    <div class="login-card">
-        <div class="brand-header">
-            <h1>MPLADS MONITORING</h1>
-            <p>Government Project Intelligence Platform</p>
+    <!-- Glass Ambient Orbs -->
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+
+    <div class="login-wrapper">
+        <div class="login-card">
+            <div class="brand-header">
+                <div class="brand-icon">🏛️</div>
+                <h1>MPLADS Portal</h1>
+                <p>Government Project Intelligence System</p>
+            </div>
+
+            {% if form.errors %}
+            <div class="error-alert">
+                ⚠️ Invalid User ID/Username or password. Please verify credentials.
+            </div>
+            {% endif %}
+
+            <form method="POST">
+                {% csrf_token %}
+                {% if next %}
+                <input type="hidden" name="next" value="{{ next }}">
+                {% endif %}
+
+                <div class="form-group">
+                    <label for="id_username">User ID / Username</label>
+                    <div class="input-container">
+                        <input type="text" name="username" id="id_username" required autofocus placeholder="e.g. ADM-001 or Username">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="id_password">Password</label>
+                    <div class="input-container">
+                        <input type="password" name="password" id="id_password" required placeholder="••••••••">
+                        <button type="button" class="pwd-toggle-btn" id="togglePwd" title="Toggle Password Visibility">👁️</button>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-submit">Sign In to Secure Workspace</button>
+            </form>
+
+            <div class="footer-note">
+                🔒 Restricted Official Access — Audit Trail Active
+            </div>
         </div>
-
-        {% if form.errors %}
-        <div class="error-alert">
-            Invalid User ID/Username or password. Please verify your credentials and try again.
-        </div>
-        {% endif %}
-
-        <form method="POST">
-    {% csrf_token %}
-    {% if next %}
-    <input type="hidden" name="next" value="{{ next }}">
-    {% endif %}
-
-    <div class="form-group">
-        <label for="id_username">User ID / Username</label>
-        <input type="text" name="username" id="id_username" required autofocus placeholder="Enter your assigned User ID">
     </div>
 
-    <div class="form-group">
-        <label for="id_password">Password</label>
-        <input type="password" name="password" id="id_password" required placeholder="••••••••">
-    </div>
+    <script>
+        const pwdInput = document.getElementById('id_password');
+        const toggleBtn = document.getElementById('togglePwd');
 
-    <button type="submit" class="btn-submit">Sign In to Workspace</button>
-</form>
-
-        <div class="footer-note">
-            Restricted System — Access Monitored & Audited
-        </div>
-    </div>
-</div>
-
+        toggleBtn.addEventListener('click', function () {
+            if (pwdInput.type === 'password') {
+                pwdInput.type = 'text';
+                toggleBtn.textContent = '🙈';
+            } else {
+                pwdInput.type = 'password';
+                toggleBtn.textContent = '👁️';
+            }
+        });
+    </script>
 </body>
 </html>

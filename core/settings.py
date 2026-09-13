@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/6.1/ref/settings/
 
 from pathlib import Path
 
+import os
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -25,12 +27,7 @@ SECRET_KEY = 'django-insecure-44caou2(m8pz5*f(#7fps5moal4fz0jh#rktu=)==@1&s6-qrj
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [
-    '3.106.201.246',  # Your EC2 Public IPv4
-    'localhost',
-    '127.0.0.1',
-    '*',
-]
+ALLOWED_HOSTS = ['3.25.76.78', 'localhost', '127.0.0.1',"*"]
 
 
 INSTALLED_APPS = [
@@ -42,12 +39,14 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'jurisdictions',
     'accounts',
+    'projects',
 ]
 
 AUTH_USER_MODEL = 'accounts.User'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -57,7 +56,7 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'core.urls'
-
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -124,8 +123,7 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-import os
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
 # Email
 # https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
 

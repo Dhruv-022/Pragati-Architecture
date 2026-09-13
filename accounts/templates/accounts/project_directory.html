@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Projects Explorer — MPLADS Command Portal</title>
+    <style>
+        :root {
+            /* Secure Executive Theme Palette */
+            --glass-bg: rgba(15, 23, 42, 0.75);
+            --glass-border: rgba(148, 163, 184, 0.15);
+            --accent-blue: #38bdf8;
+            --accent-navy: #1e293b;
+            --accent-steel: #64748b;
+            --accent-gold: #eab308;
+            --accent-emerald: #10b981;
+            --accent-rose: #f43f5e;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: #0b0f19;
+            color: var(--text-main);
+            padding: 32px;
+            margin: 0;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Ambient Glass Background Orbs */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(120px);
+            z-index: 0;
+            opacity: 0.35;
+            pointer-events: none;
+            animation: float 14s infinite alternate ease-in-out;
+        }
+
+        .orb-1 {
+            width: 450px;
+            height: 450px;
+            background: linear-gradient(135deg, #0284c7, #1e293b);
+            top: -80px;
+            left: -80px;
+        }
+
+        .orb-2 {
+            width: 550px;
+            height: 550px;
+            background: linear-gradient(135deg, #334155, #0f172a);
+            bottom: -120px;
+            right: -120px;
+            animation-delay: -7s;
+        }
+
+        @keyframes float {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(30px, -20px) scale(1.05); }
+        }
+
+        .main-container {
+            position: relative;
+            z-index: 10;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Glass Header */
+        .header {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 20px 28px;
+            margin-bottom: 28px;
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, transparent, #38bdf8, #eab308, transparent);
+        }
+
+        .back-link {
+            color: var(--accent-blue);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            color: #7dd3fc;
+            text-decoration: underline;
+        }
+
+        .header h1 {
+            margin: 10px 0 0 0;
+            font-size: 20px;
+            font-weight: 800;
+            color: #f8fafc;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Glass Table */
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 32px;
+            box-shadow: 0 15px 35px -10px rgba(0, 0, 0, 0.7);
+        }
+
+        th, td {
+            padding: 14px 18px;
+            text-align: left;
+            font-size: 13px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        th {
+            background: rgba(15, 23, 42, 0.85);
+            color: var(--text-muted);
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.8px;
+        }
+
+        tbody tr {
+            transition: background 0.2s ease;
+        }
+
+        tbody tr:hover {
+            background: rgba(56, 189, 248, 0.04);
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Glass Status Badges */
+        .badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            display: inline-block;
+            backdrop-filter: blur(8px);
+        }
+
+        .badge-completed {
+            background: rgba(16, 185, 129, 0.15);
+            color: #6ee7b7;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .badge-progress {
+            background: rgba(234, 179, 8, 0.15);
+            color: #fde047;
+            border: 1px solid rgba(234, 179, 8, 0.3);
+        }
+
+        .badge-proposed {
+            background: rgba(56, 189, 248, 0.15);
+            color: #93c5fd;
+            border: 1px solid rgba(56, 189, 248, 0.3);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Ambient Background Orbs -->
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+
+    <div class="main-container">
+
+        <!-- Header -->
+        <div class="header">
+            <a href="{% url 'admin_dashboard' %}" class="back-link">&larr; Back to Executive Dashboard</a>
+            <h1>📦 System-Wide Master Projects Directory</h1>
+        </div>
+
+        <!-- Master Projects Directory Table -->
+        <table>
+            <thead>
+                <tr>
+                    <th>Project ID</th>
+                    <th>Title</th>
+                    <th>Jurisdiction</th>
+                    <th>Category</th>
+                    <th>Sanctioned Amount</th>
+                    <th>Funds Released</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for project in projects %}
+                <tr>
+                    <td><strong style="color: var(--accent-blue);">{{ project.project_id }}</strong></td>
+                    <td>{{ project.title }}</td>
+                    <td>{{ project.jurisdiction.name }}</td>
+                    <td>{{ project.category }}</td>
+                    <td>₹{{ project.sanctioned_amount|floatformat:2 }}</td>
+                    <td>₹{{ project.funds_released|floatformat:2 }}</td>
+                    <td>
+                        {% if project.status == 'COMPLETED' %}
+                            <span class="badge badge-completed">Completed</span>
+                        {% elif project.status == 'IN_PROGRESS' %}
+                            <span class="badge badge-progress">In Progress</span>
+                        {% else %}
+                            <span class="badge badge-proposed">Proposed</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="text-align: center; color: var(--text-muted); padding: 24px;">No projects found in master database.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+    </div>
+
+</body>
+</html>
