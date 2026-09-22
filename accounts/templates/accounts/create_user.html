@@ -7,6 +7,10 @@
     <title>Provision Official — MPLADS Administrative Panel</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        /* Suppress raw oversized Django default password help list */
+        .raw-help-text ul {
+            display: none !important;
+        }
         .password-help-box ul {
             list-style-type: disc;
             margin-left: 1rem;
@@ -56,7 +60,7 @@
                         Official Onboarding Panel
                     </h1>
                     <p class="text-xs text-gray-600 mt-2 leading-relaxed">
-                        Provision strictly designated administrative credentials across the four-tier hierarchy: MoSPI Apex, State Nodal, MP, or District Authority.
+                        Provision designated administrative credentials across the four-tier hierarchy: MoSPI Apex, State Nodal, MP, or District Authority.
                     </p>
 
                     <!-- Guideline Bullet Notes -->
@@ -90,12 +94,20 @@
                 <form method="POST" id="userProvisionForm" class="space-y-4">
                     {% csrf_token %}
 
-                    {% if form.non_field_errors %}
-                        <div class="bg-red-50 border border-red-200 text-red-700 p-3 rounded-xl text-xs flex items-start space-x-2">
-                            <svg class="w-4 h-4 text-red-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                            <span>{{ form.non_field_errors }}</span>
+                    <!-- Form Validation Error Summary -->
+                    {% if form.errors %}
+                        <div class="bg-red-50 border border-red-200 text-red-700 p-3.5 rounded-xl text-xs space-y-1">
+                            <div class="font-bold flex items-center gap-1.5 text-red-800">
+                                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <span>Please resolve the following before saving:</span>
+                            </div>
+                            <ul class="list-disc pl-5 space-y-0.5 text-[11px]">
+                                {% for field, errors in form.errors.items %}
+                                    <li><strong>{{ field|title }}:</strong> {{ errors|striptags }}</li>
+                                {% endfor %}
+                            </ul>
                         </div>
                     {% endif %}
 
@@ -103,173 +115,96 @@
                     <input type="hidden" name="state" id="hiddenStateInput" value="{{ form.state.value|default:'' }}">
                     <input type="hidden" name="is_nominated_mp" id="hiddenNominatedInput" value="{% if form.is_nominated_mp.value %}true{% else %}false{% endif %}">
 
-                    <!-- SECTION 1: ACCOUNT CREDENTIALS -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                        <div class="space-y-1">
-                            <label class="block text-[11px] font-bold uppercase tracking-wider text-blue-950">
-                                {% if form.user_id %}{{ form.user_id.label }}{% else %}Official User ID{% endif %}
-                            </label>
-                            {% if form.user_id %}
-                                {{ form.user_id }}
-                                {% if form.user_id.errors %}<p class="text-[10px] text-red-600 font-semibold">{{ form.user_id.errors.0 }}</p>{% endif %}
-                            {% else %}
-                                <input type="text" name="user_id" placeholder="e.g. ADM-001, MP-012" class="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-xs text-gray-900 focus:ring-2 focus:ring-blue-900 focus:outline-none shadow-xs">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {% for field in form %}
+                            {% if field.name != 'jurisdiction' and field.name != 'state' and field.name != 'is_nominated_mp' %}
+                                <div class="space-y-1 {% if field.name == 'username' or field.name == 'email' %}md:col-span-2{% endif %}">
+                                    <label class="block text-[11px] font-bold uppercase tracking-wider text-blue-950">
+                                        {{ field.label }}
+                                    </label>
+                                    {{ field }}
+                                    {% if field.help_text %}
+                                        <div class="raw-help-text text-[10px] text-gray-400">
+                                            {{ field.help_text }}
+                                        </div>
+                                    {% endif %}
+                                    {% for error in field.errors %}
+                                        <p class="text-[11px] text-red-600 font-semibold">{{ error }}</p>
+                                    {% endfor %}
+                                </div>
                             {% endif %}
-                        </div>
+                        {% endfor %}
 
-                        <div class="space-y-1">
-                            <label class="block text-[11px] font-bold uppercase tracking-wider text-blue-950">
-                                {{ form.username.label|default:"Username" }}
-                            </label>
-                            {{ form.username }}
-                            {% if form.username.errors %}<p class="text-[10px] text-red-600 font-semibold">{{ form.username.errors.0 }}</p>{% endif %}
-                        </div>
-                    </div>
+                        <!-- Custom Cascading Jurisdiction & MP Nominated Selectors -->
+                        <div class="space-y-3 md:col-span-2 bg-gray-50 p-4 rounded-xl border border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <label class="block text-[11px] font-bold uppercase tracking-wider text-blue-950">
+                                    Assigned Jurisdiction & Representation Scope
+                                </label>
+                                <span id="roleBadgeHelp" class="text-[10px] font-mono font-bold bg-blue-50 text-blue-900 border border-blue-200 px-2 py-0.5 rounded"></span>
+                            </div>
 
-                    <!-- SECTION 2: PERSONAL IDENTITY (SIDE BY SIDE) -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                        <div class="space-y-1">
-                            <label class="block text-[11px] font-bold uppercase tracking-wider text-blue-950">
-                                {{ form.first_name.label|default:"First Name" }}
-                            </label>
-                            {{ form.first_name }}
-                            {% if form.first_name.errors %}<p class="text-[10px] text-red-600 font-semibold">{{ form.first_name.errors.0 }}</p>{% endif %}
-                        </div>
+                            <!-- Nominated MP Toggle (Shown ONLY when Role is MP) -->
+                            <div id="nominatedContainer" class="p-3 bg-white border border-gray-200 rounded-xl hidden">
+                                <label class="inline-flex items-center space-x-2 cursor-pointer">
+                                    <input type="checkbox" id="nominatedMpCheckbox" class="w-4 h-4 text-blue-900 border-gray-300 rounded focus:ring-blue-900">
+                                    <span class="text-xs font-bold text-gray-800">Nominated Member of Parliament (Pan-India Jurisdiction)</span>
+                                </label>
+                                <p class="text-[10px] text-gray-500 mt-1 pl-6">
+                                    If checked, this MP has statutory oversight without state territorial restriction. State and District selection are automatically bypassed.
+                                </p>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <!-- State / UT Selector -->
+                                <div id="stateContainer">
+                                    <label class="block text-[10px] font-semibold text-gray-600 mb-1">State / Union Territory</label>
+                                    <select id="stateSelect" class="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-xs text-gray-900 focus:ring-2 focus:ring-blue-900 focus:outline-none shadow-xs">
+                                        <option value="">-- Select State / UT --</option>
+                                        <option value="Rajasthan">Rajasthan</option>
+                                        <option value="Gujarat">Gujarat</option>
+                                        <option value="Maharashtra">Maharashtra</option>
+                                        <option value="Uttar Pradesh">Uttar Pradesh</option>
+                                        <option value="Haryana">Haryana</option>
+                                        <option value="Delhi">Delhi</option>
+                                        <option value="Madhya Pradesh">Madhya Pradesh</option>
+                                        <option value="Bihar">Bihar</option>
+                                    </select>
+                                </div>
 
-                        <div class="space-y-1">
-                            <label class="block text-[11px] font-bold uppercase tracking-wider text-blue-950">
-                                {{ form.last_name.label|default:"Last Name" }}
-                            </label>
-                            {{ form.last_name }}
-                            {% if form.last_name.errors %}<p class="text-[10px] text-red-600 font-semibold">{{ form.last_name.errors.0 }}</p>{% endif %}
-                        </div>
-                    </div>
+                                <!-- District Selector (Hidden for MPs, visible for District Authorities) -->
+                                <div id="districtContainer">
+                                    <label class="block text-[10px] font-semibold text-gray-600 mb-1">Assigned District Collectorate</label>
+                                    <!-- Original form field rendered silently so Django can validate it -->
+                                    <div class="hidden">
+                                        {{ form.jurisdiction }}
+                                    </div>
+                                    <select id="districtSelect" disabled class="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-xs text-gray-900 focus:ring-2 focus:ring-blue-900 focus:outline-none disabled:bg-gray-100 disabled:text-gray-400 shadow-xs">
+                                        <option value="">-- Select State First --</option>
+                                    </select>
+                                </div>
+                            </div>
 
-                    <!-- SECTION 3: OFFICIAL CONTACT & ROLE (SIDE BY SIDE) -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                        <div class="space-y-1">
-                            <label class="block text-[11px] font-bold uppercase tracking-wider text-blue-950">
-                                {{ form.email.label|default:"Official Email Address" }}
-                            </label>
-                            {{ form.email }}
-                            {% if form.email.errors %}<p class="text-[10px] text-red-600 font-semibold">{{ form.email.errors.0 }}</p>{% endif %}
-                        </div>
-
-                        <div class="space-y-1">
-                            <label class="block text-[11px] font-bold uppercase tracking-wider text-blue-950">
-                                {{ form.role.label|default:"Hierarchy Designation" }}
-                            </label>
-                            {{ form.role }}
-                            {% if form.role.errors %}<p class="text-[10px] text-red-600 font-semibold">{{ form.role.errors.0 }}</p>{% endif %}
-                        </div>
-                    </div>
-
-                    <!-- SECTION 4: CASCADING JURISDICTION -->
-                    <div class="space-y-3 bg-gray-50 p-3.5 rounded-xl border border-gray-200">
-                        <div class="flex items-center justify-between">
-                            <label class="block text-[11px] font-bold uppercase tracking-wider text-blue-950">
-                                Assigned Jurisdiction & Representation Scope
-                            </label>
-                            <span id="roleBadgeHelp" class="text-[10px] font-mono font-bold bg-blue-50 text-blue-900 border border-blue-200 px-2 py-0.5 rounded"></span>
-                        </div>
-
-                        <!-- Nominated MP Toggle -->
-                        <div id="nominatedContainer" class="p-2.5 bg-white border border-gray-200 rounded-xl hidden">
-                            <label class="inline-flex items-center space-x-2 cursor-pointer">
-                                <input type="checkbox" id="nominatedMpCheckbox" class="w-3.5 h-3.5 text-blue-900 border-gray-300 rounded focus:ring-blue-900">
-                                <span class="text-xs font-bold text-gray-800">Nominated Member of Parliament (Pan-India Jurisdiction)</span>
-                            </label>
-                            <p class="text-[10px] text-gray-500 mt-0.5 pl-5">
-                                Pan-India statutory scope across all states and Union Territories without territorial restrictions.
+                            <p id="jurisdictionHelpText" class="text-[10px] text-blue-900 mt-2 font-medium">
+                                ℹ️ Configured according to MPLADS statutory role guidelines.
                             </p>
                         </div>
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <!-- State / UT Selector -->
-                            <div id="stateContainer">
-                                <label class="block text-[10px] font-semibold text-gray-600 mb-1">State / Union Territory</label>
-                                <select id="stateSelect" class="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-xs text-gray-900 focus:ring-2 focus:ring-blue-900 focus:outline-none shadow-xs">
-                                    <option value="">-- Select State / UT --</option>
-                                    <option value="Rajasthan">Rajasthan</option>
-                                    <option value="Gujarat">Gujarat</option>
-                                    <option value="Maharashtra">Maharashtra</option>
-                                    <option value="Uttar Pradesh">Uttar Pradesh</option>
-                                    <option value="Haryana">Haryana</option>
-                                    <option value="Delhi">Delhi</option>
-                                    <option value="Madhya Pradesh">Madhya Pradesh</option>
-                                    <option value="Bihar">Bihar</option>
-                                </select>
-                            </div>
-
-                            <!-- District Selector -->
-                            <div id="districtContainer">
-                                <label class="block text-[10px] font-semibold text-gray-600 mb-1">District Collectorate</label>
-                                <div style="display:none;">
-                                    {{ form.jurisdiction }}
-                                </div>
-                                <select id="districtSelect" disabled class="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-xs text-gray-900 focus:ring-2 focus:ring-blue-900 focus:outline-none disabled:bg-gray-100 disabled:text-gray-400 shadow-xs">
-                                    <option value="">-- Select State First --</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <p id="jurisdictionHelpText" class="text-[10px] text-blue-900 font-medium">
-                            ℹ️ Configured according to MPLADS statutory role guidelines.
-                        </p>
                     </div>
 
-                    <!-- SECTION 5: PASSWORD FIELDS (SIDE-BY-SIDE + MICRO-CRITERIA) -->
-                    <div class="pt-2 border-t border-gray-100">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                            <!-- Password 1 -->
-                            <div class="space-y-1">
-                                <label class="block text-[11px] font-bold uppercase tracking-wider text-blue-950">
-                                    {% if form.password1 %}{{ form.password1.label }}{% elif form.password %}{{ form.password.label }}{% else %}Password{% endif %}
-                                </label>
-                                {% if form.password1 %}
-                                    {{ form.password1 }}
-                                    {% if form.password1.errors %}<p class="text-[10px] text-red-600 font-semibold">{{ form.password1.errors.0 }}</p>{% endif %}
-                                {% elif form.password %}
-                                    {{ form.password }}
-                                    {% if form.password.errors %}<p class="text-[10px] text-red-600 font-semibold">{{ form.password.errors.0 }}</p>{% endif %}
-                                {% else %}
-                                    <input type="password" name="password" required placeholder="••••••••" class="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-xs text-gray-900 focus:ring-2 focus:ring-blue-900 focus:outline-none shadow-xs">
-                                {% endif %}
-                            </div>
-
-                            <!-- Password 2 (Confirm) -->
-                            <div class="space-y-1">
-                                <label class="block text-[11px] font-bold uppercase tracking-wider text-blue-950">
-                                    {% if form.password2 %}{{ form.password2.label }}{% elif form.password_confirm %}{{ form.password_confirm.label }}{% else %}Password Confirmation{% endif %}
-                                </label>
-                                {% if form.password2 %}
-                                    {{ form.password2 }}
-                                    {% if form.password2.errors %}<p class="text-[10px] text-red-600 font-semibold">{{ form.password2.errors.0 }}</p>{% endif %}
-                                {% elif form.password_confirm %}
-                                    {{ form.password_confirm }}
-                                    {% if form.password_confirm.errors %}<p class="text-[10px] text-red-600 font-semibold">{{ form.password_confirm.errors.0 }}</p>{% endif %}
-                                {% else %}
-                                    <input type="password" name="password_confirm" required placeholder="••••••••" class="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-xs text-gray-900 focus:ring-2 focus:ring-blue-900 focus:outline-none shadow-xs">
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <!-- Compact Micro-font Password Instructions Box -->
-                        <div class="mt-2.5 p-2 bg-gray-50 border border-gray-200 rounded-xl password-help-box">
-                            <span class="text-[10px] font-bold uppercase tracking-wider text-gray-600 block mb-1">
-                                Password Benchmark Criteria:
-                            </span>
-                            <ul>
-                                <li>Minimum 8 characters length</li>
-                                <li>Cannot be similar to personal details</li>
-                                <li>Cannot be a common password</li>
-                                <li>Must not be entirely numeric characters</li>
-                            </ul>
-                        </div>
+                    <!-- Compact Micro-font Password Instructions Box -->
+                    <div class="p-2.5 bg-gray-50 border border-gray-200 rounded-xl password-help-box">
+                        <span class="text-[10px] font-bold uppercase tracking-wider text-gray-600 block mb-1">
+                            Password Benchmark Criteria:
+                        </span>
+                        <ul>
+                            <li>Minimum 8 characters length</li>
+                            <li>Cannot be similar to personal details</li>
+                            <li>Cannot be a commonly used password</li>
+                            <li>Must not be entirely numeric characters</li>
+                        </ul>
                     </div>
 
-                    <!-- ACTION BUTTONS -->
-                    <div class="pt-3 border-t border-gray-100 flex items-center justify-end space-x-2.5">
+                    <div class="pt-3 border-t border-gray-100 flex items-center justify-end space-x-3">
                         <a href="{% url 'mospi_dashboard' %}" class="px-4 py-2 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100 transition-colors">
                             Cancel
                         </a>
@@ -290,14 +225,13 @@
         <p>Member of Parliament Local Area Development Scheme (MPLADS) Portal — Secure Onboarding Module</p>
     </footer>
 
-    <!-- Interactive Dropdown & Field Normalization Script -->
+    <!-- Interactive Role & Cascading Dropdown Script -->
     <script>
-    document.querySelectorAll('input:not([type="checkbox"]):not([type="hidden"]), select:not(#stateSelect):not(#districtSelect)').forEach(el => {
-        el.classList.add(
-            'w-full', 'bg-white', 'border', 'border-gray-300', 'rounded-xl', 
-            'px-3', 'py-2', 'text-xs', 'text-gray-900', 'focus:ring-2', 
-            'focus:ring-blue-900', 'focus:outline-none', 'shadow-xs'
-        );
+    // Style inputs consistently
+    document.querySelectorAll('input, select:not(#stateSelect):not(#districtSelect), textarea').forEach(el => {
+        if (!el.classList.contains('form-checkbox') && !el.classList.contains('form-radio') && el.type !== 'checkbox' && el.type !== 'hidden') {
+            el.classList.add('w-full', 'bg-white', 'border', 'border-gray-300', 'rounded-xl', 'px-3', 'py-2', 'text-xs', 'text-gray-900', 'focus:ring-2', 'focus:ring-blue-900', 'focus:outline-none', 'shadow-xs');
+        }
     });
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -406,8 +340,24 @@
 
         districtSelect.addEventListener('change', function() {
             if (originalJurisdictionSelect) {
+                const chosen = this.value.trim().toLowerCase();
+                let matched = false;
                 Array.from(originalJurisdictionSelect.options).forEach(opt => {
-                    if (opt.text.trim().toLowerCase() === this.value.trim().toLowerCase()) {
+                    if (opt.text.trim().toLowerCase() === chosen || opt.value.trim().toLowerCase() === chosen) {
+                        originalJurisdictionSelect.value = opt.value;
+                        matched = true;
+                    }
+                });
+            }
+        });
+
+        // Intercept form submission to ensure the original jurisdiction select has a value
+        const formEl = document.getElementById('userProvisionForm');
+        formEl.addEventListener('submit', function() {
+            if (roleSelect && roleSelect.value === 'DISTRICT_AUTHORITY' && originalJurisdictionSelect && districtSelect) {
+                const chosen = districtSelect.value.trim().toLowerCase();
+                Array.from(originalJurisdictionSelect.options).forEach(opt => {
+                    if (opt.text.trim().toLowerCase() === chosen || opt.value.trim().toLowerCase() === chosen) {
                         originalJurisdictionSelect.value = opt.value;
                     }
                 });
