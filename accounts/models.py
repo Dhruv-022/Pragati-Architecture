@@ -16,8 +16,16 @@ class User(AbstractUser):
 
     user_id = models.CharField(max_length=20, unique=True, help_text="e.g. MOSPI-001, STA-012, MP-045, DIST-008")
     role = models.CharField(max_length=30, choices=Role.choices, default=Role.DISTRICT_AUTHORITY)
+    
+    # State assignment for elected MPs / State Nodal officers
+    state = models.CharField(max_length=100, blank=True, null=True, help_text="State / UT for elected MPs or State Nodal officers")
+    
+    # Pan-India flag for nominated MPs
     is_nominated_mp = models.BooleanField(default=False, help_text="Nominated MP with Pan-India jurisdiction")
+    
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.ACTIVE)
+    
+    # District / Territorial foreign key
     jurisdiction = models.ForeignKey(
         Jurisdiction, on_delete=models.SET_NULL, null=True, blank=True, related_name='users'
     )
