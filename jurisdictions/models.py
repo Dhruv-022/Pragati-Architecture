@@ -1,15 +1,13 @@
 from django.db import models
 
 class Jurisdiction(models.Model):
-    class Level(models.TextChoices):
-        STATE = 'STATE', 'State'
+    class Type(models.TextChoices):
+        STATE = 'STATE', 'State / UT'
         DISTRICT = 'DISTRICT', 'District'
-
-    name = models.CharField(max_length=100)
-    level = models.CharField(max_length=20, choices=Level.choices, default=Level.DISTRICT)
-    parent = models.ForeignKey(
-        'self', on_delete=models.CASCADE, null=True, blank=True, related_name='sub_jurisdictions'
-    )
+        
+    name = models.CharField(max_length=255)
+    jurisdiction_type = models.CharField(max_length=50, choices=Type.choices, blank=True, null=True, default='DISTRICT')
+    parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='sub_jurisdictions')
 
     def __str__(self):
-        return f"{self.name} ({self.level})"
+        return self.name

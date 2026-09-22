@@ -1,0 +1,651 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>District Authority - Execution & Inspection Command</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .table-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+        .table-scroll::-webkit-scrollbar-track { background: #f3f4f6; }
+        .table-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .table-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 min-h-screen flex flex-col justify-between">
+
+    <!-- Top Tricolor Accent Line -->
+    <div class="h-1.5 w-full bg-gradient-to-r from-orange-500 via-white to-green-600"></div>
+
+    <div class="max-w-7xl mx-auto px-6 pt-2 pb-6 w-full flex-1 flex flex-col space-y-4">
+
+        <!-- OFFICIAL DISTRICT HEADER BAR (Tucked close to upper edge) -->
+        <div class="bg-white border border-gray-200 rounded-2xl px-6 py-3 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div class="flex items-center space-x-4">
+                <!-- Hard-Constrained Logo Box -->
+                <div class="bg-gray-50 p-1.5 rounded-xl border border-gray-200 shadow-inner flex items-center justify-center shrink-0 w-14 h-14">
+                    <img src="{% static 'projects/images/mpladlogo.png' %}" 
+                         alt="MPLADS Logo" 
+                         style="width: 48px; height: 48px; max-width: 48px; max-height: 48px; object-fit: contain;" 
+                         class="w-12 h-12 object-contain">
+                </div>
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs font-semibold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-0.5 rounded">
+                            Government of India
+                        </span>
+                        <span class="text-xs font-medium text-gray-500">Ministry of Statistics and Programme Implementation</span>
+                    </div>
+                    <h1 class="text-2xl font-extrabold text-blue-950 mt-0.5 tracking-tight">
+                        District {{ district_name }} Authority Panel
+                    </h1>
+                    <p class="text-xs md:text-sm text-gray-600 flex flex-wrap items-center gap-2 mt-0.5">
+                        <span>Sanctioning Authority: <strong class="text-blue-950 font-bold">{{ officer_name }}</strong></span>
+                        <span>•</span>
+                        <span>Jurisdiction: <strong class="text-blue-900 font-bold">{{ district_name }} District</strong></span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Header Controls: Notification, Alert, Public Explorer, Logout -->
+            <div class="flex items-center gap-3 self-end md:self-auto shrink-0">
+                <!-- 1. NOTIFICATION ICON -->
+                <button type="button" onclick="openNotificationModal()" 
+                        class="relative p-2.5 rounded-xl border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 shadow-sm transition-all active:scale-95 cursor-pointer"
+                        title="Inspection Notifications & Dispatched Audits">
+                    <svg class="w-5 h-5 text-blue-950" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                    </svg>
+                    <span id="notifBadge" class="absolute -top-1.5 -right-1.5 bg-blue-900 text-white font-black text-[10px] w-5 h-5 rounded-full flex items-center justify-center ring-2 ring-white shadow">
+                        1
+                    </span>
+                </button>
+
+                <!-- 2. ALERT ICON -->
+                <button type="button" onclick="openAlertModal()" 
+                        class="relative p-2.5 rounded-xl border border-rose-300 bg-rose-50 hover:bg-rose-100 text-rose-700 shadow-sm transition-all active:scale-95 cursor-pointer"
+                        title="Critical Flagged Alerts Requiring Inspection Assignment">
+                    <svg class="w-5 h-5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                    <span id="alertBadge" class="absolute -top-1.5 -right-1.5 bg-rose-600 text-white font-black text-[10px] w-5 h-5 rounded-full flex items-center justify-center ring-2 ring-white shadow">
+                        3
+                    </span>
+                </button>
+
+                <!-- 3. PUBLIC EXPLORER -->
+                <a href="{% url 'projects:data_overview' %}" class="px-4 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs font-bold rounded-xl border border-gray-300 shadow-sm transition-colors">
+                    Public Explorer
+                </a>
+
+                <!-- 4. LOGOUT -->
+                <a href="{% url 'logout' %}" class="inline-flex items-center gap-1.5 px-4 py-2 bg-white hover:bg-red-50 text-gray-700 hover:text-red-700 rounded-xl text-xs font-bold border border-gray-300 shadow-sm transition-all">
+                    <span>Logout</span>
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+
+        <!-- KPI SUMMARY CARDS -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Total Works -->
+            <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm border-l-4 border-l-blue-600 flex flex-col justify-between">
+                <div>
+                    <p class="text-[11px] font-bold uppercase tracking-wider text-gray-500">Total Works</p>
+                    <p class="text-2xl font-black text-blue-950 mt-1">{{ total_projects|default:ongoing_count }}</p>
+                </div>
+                <div class="mt-3 flex items-center justify-between">
+                    <span class="text-[10px] text-gray-400">Jurisdiction Works</span>
+                    <span class="text-[10px] font-bold text-blue-900 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded">
+                        {{ completed_projects|default:0 }} Completed
+                    </span>
+                </div>
+            </div>
+
+            <!-- Sanctioned Outlay -->
+            <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm border-l-4 border-l-indigo-600 flex flex-col justify-between">
+                <div>
+                    <p class="text-[11px] font-bold uppercase tracking-wider text-gray-500">Sanctioned Outlay</p>
+                    <p class="text-2xl font-black text-indigo-950 mt-1">{{ total_sanctioned_str|default:"₹184,500,000" }}</p>
+                </div>
+                <div class="mt-3 flex items-center justify-between">
+                    <span class="text-[10px] text-gray-400">Approved AS/FS Pool</span>
+                    <span class="text-[10px] font-bold text-indigo-800 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded">
+                        Statutory Fund
+                    </span>
+                </div>
+            </div>
+
+            <!-- Disbursed to Agencies -->
+            <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm border-l-4 border-l-emerald-600 flex flex-col justify-between">
+                <div>
+                    <p class="text-[11px] font-bold uppercase tracking-wider text-gray-500">Disbursed to Agencies</p>
+                    <p class="text-2xl font-black text-emerald-950 mt-1">{{ funds_disbursed_str|default:"₹121,500,000" }}</p>
+                </div>
+                <div class="mt-3 flex items-center justify-between">
+                    <span class="text-[10px] text-gray-400">Tranche 1 & 2 Releases</span>
+                    <span class="text-[10px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">
+                        {{ disbursement_ratio|default:"65.9" }}% Velocity
+                    </span>
+                </div>
+            </div>
+
+            <!-- Flagged Alerts -->
+            <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm border-l-4 border-l-amber-500 flex flex-col justify-between">
+                <div>
+                    <p class="text-[11px] font-bold uppercase tracking-wider text-gray-500">Flagged Alerts</p>
+                    <p id="kpiAlertCount" class="text-2xl font-black text-amber-900 mt-1">0</p>
+                </div>
+                <div class="mt-3 flex items-center justify-between">
+                    <span class="text-[10px] text-gray-400">Collectorate Directive</span>
+                    <span class="text-[10px] font-bold text-amber-900 bg-amber-50 border border-amber-300 px-2 py-0.5 rounded">
+                        Inquiry Action
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- UNIFIED COMMAND TABLE CONTAINER WITH MODE DROPDOWN -->
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm flex flex-col overflow-hidden mb-6">
+            
+            <div class="bg-gray-50 border-b border-gray-200 px-6 py-3.5 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div class="flex items-center space-x-3 w-full sm:w-auto">
+                    <span id="modeBadge" class="text-xs font-bold uppercase tracking-wider text-blue-900 bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-lg">
+                        Execution Panel
+                    </span>
+                    <span id="modeSubtitle" class="text-xs text-gray-500 hidden sm:inline">
+                        Tracking project schedules, location, area scope, outlays and physical progress
+                    </span>
+                </div>
+
+                <div class="flex items-center space-x-2 self-end sm:self-auto">
+                    <label for="tableModeSelect" class="text-xs font-semibold text-gray-600 hidden sm:inline">
+                        Select View:
+                    </label>
+                    <select id="tableModeSelect" onchange="toggleTableMode(this.value)" 
+                            class="bg-white border border-gray-300 text-blue-950 font-bold text-xs rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-900 focus:outline-none shadow-sm cursor-pointer">
+                        <option value="execution" selected>1. Execution Table ({{ ongoing_count }})</option>
+                        <option value="inspection">2. Inspection & Alerts Table</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- VIEW 1: EXECUTION TABLE -->
+            <div id="executionView" class="overflow-x-auto max-h-[500px] overflow-y-auto table-scroll">
+                <table class="w-full text-left border-collapse">
+                    <thead class="sticky top-0 bg-blue-950 text-white text-xs uppercase tracking-wider border-b border-blue-900 z-10">
+                        <tr>
+                            <th class="p-4 text-center w-14 font-semibold tracking-wide">S.No</th>
+                            <th class="p-4 font-semibold tracking-wide">Project Name & ID</th>
+                            <th class="p-4 font-semibold tracking-wide">Location</th>
+                            <th class="p-4 font-semibold tracking-wide">Area Zone / IDA</th>
+                            <th class="p-4 text-right font-semibold tracking-wide">Budget</th>
+                            <th class="p-4 text-center font-semibold tracking-wide">Schedule Status</th>
+                            <th class="p-4 text-center font-semibold tracking-wide">Physical Progress</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200 text-sm bg-white">
+                        {% for p in ongoing_works %}
+                        <tr class="hover:bg-blue-50/80 transition-colors">
+                            <td class="p-4 text-center font-mono font-bold text-xs text-gray-500 bg-gray-50/50">
+                                {{ forloop.counter }}
+                            </td>
+                            <td class="p-4 font-bold text-gray-900 max-w-sm">
+                                <span class="font-mono text-[10px] font-bold text-blue-900 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded block w-max mb-1">
+                                    {{ p.id }}
+                                </span>
+                                {{ p.title }}
+                            </td>
+                            <td class="p-4 text-xs text-gray-700 font-medium">
+                                {{ p.location }}
+                            </td>
+                            <td class="p-4 text-xs font-semibold text-gray-600">
+                                <span class="bg-gray-100 border border-gray-200 px-2.5 py-1 rounded-md">
+                                    {{ p.area }} • {{ p.ida }}
+                                </span>
+                            </td>
+                            <td class="p-4 text-right font-mono font-bold text-gray-900 text-sm">
+                                {{ p.budget }}
+                            </td>
+                            <td class="p-4 text-center">
+                                {% if p.is_delayed %}
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-300">
+                                    ⚠ {{ p.schedule }}
+                                </span>
+                                {% else %}
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-300">
+                                    ✓ {{ p.schedule }}
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td class="p-4 text-center">
+                                <div class="w-24 mx-auto">
+                                    <div class="flex justify-between text-[10px] font-mono font-bold mb-0.5">
+                                        <span>Done</span>
+                                        <span>{{ p.progress }}%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                                        <div class="{% if p.progress >= 70 %}bg-emerald-600{% elif p.progress >= 40 %}bg-blue-900{% else %}bg-amber-500{% endif %} h-1.5 rounded-full" 
+                                             style="width: {{ p.progress }}%;"></div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="py-10 text-center text-gray-400 font-medium text-sm">
+                                No active execution projects registered.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- VIEW 2: INSPECTION TABLE -->
+            <div id="inspectionView" class="overflow-x-auto max-h-[500px] overflow-y-auto table-scroll hidden">
+                <table class="w-full text-left border-collapse">
+                    <thead class="sticky top-0 bg-blue-950 text-white text-xs uppercase tracking-wider border-b border-blue-900 z-10">
+                        <tr>
+                            <th class="p-4 text-center w-14 font-semibold tracking-wide">S.No</th>
+                            <th class="p-4 font-semibold tracking-wide">Project Name & ID</th>
+                            <th class="p-4 font-semibold tracking-wide">Agency (IDA) & Zone</th>
+                            <th class="p-4 text-center font-semibold tracking-wide">Audit Schedule & Delay</th>
+                            <th class="p-4 text-center font-semibold tracking-wide">Completion Status</th>
+                            <th class="p-4 font-semibold tracking-wide">Inspection & Action Report</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200 text-sm bg-white">
+                        {% for i in alert_works %}
+                        <tr class="hover:bg-blue-50/80 transition-colors">
+                            <td class="p-4 text-center font-mono font-bold text-xs text-gray-500 bg-gray-50/50">
+                                {{ forloop.counter }}
+                            </td>
+                            <td class="p-4 font-bold text-gray-900 max-w-sm">
+                                <span class="font-mono text-xs font-bold text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded block w-max mb-1">
+                                    {{ i.id }}
+                                </span>
+                                {{ i.title }}
+                            </td>
+                            <td class="p-4 text-xs text-blue-950 font-semibold">
+                                <div>{{ i.ida }}</div>
+                                <div class="text-[11px] text-gray-500 font-normal">{{ i.location }} ({{ i.area }})</div>
+                            </td>
+                            <td class="p-4 text-center font-mono text-xs text-gray-600">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-300">
+                                    {{ i.schedule }} (+{{ i.days_delayed }}d)
+                                </span>
+                            </td>
+                            <td class="p-4 text-center">
+                                {% if i.progress >= 100 %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-300 shadow-sm">
+                                    Completed
+                                </span>
+                                {% else %}
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-bold bg-amber-50 text-amber-900 border border-amber-300 shadow-sm">
+                                    In Progress ({{ i.progress }}%)
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td class="p-4 text-xs text-gray-700 leading-relaxed font-medium max-w-md">
+                                <div class="bg-rose-50/60 border border-rose-200 p-2.5 rounded-xl space-y-1">
+                                    <p class="text-rose-950 font-bold">⚠ {{ i.issue }}</p>
+                                    <p class="text-gray-600 text-[11px]"><strong>Action Required:</strong> {{ i.action_required }}</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="py-10 text-center text-gray-400 font-medium text-sm">
+                                No inspection audits recorded yet.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- 1. ALERT POPUP MODAL -->
+    <div id="alertPopupModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 md:p-6">
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-2xl w-full max-w-5xl max-h-[88vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-150">
+            <div class="bg-blue-950 text-white px-6 py-4 flex items-center justify-between border-b border-blue-900">
+                <div class="flex items-center space-x-3">
+                    <span class="bg-blue-900 text-amber-400 text-xs px-2.5 py-1 rounded font-mono uppercase tracking-wider">
+                        Critical Flags
+                    </span>
+                    <h3 class="text-base sm:text-lg font-bold">
+                        Assign Official Inspectors to Flagged Projects
+                    </h3>
+                </div>
+                <button onclick="closeAlertModal()" class="text-gray-400 hover:text-white bg-blue-900/50 hover:bg-blue-900 p-2 rounded-xl transition-colors cursor-pointer">
+                    ✕
+                </button>
+            </div>
+
+            <div class="flex-1 overflow-auto p-5" id="alertModalBody">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-100 text-[11px] font-bold uppercase tracking-wider text-gray-700 border-b border-gray-200">
+                                <th class="py-3 px-4">Project ID & Name</th>
+                                <th class="py-3 px-4">Alert Reason / Directive</th>
+                                <th class="py-3 px-3">Assign Inspector</th>
+                                <th class="py-3 px-3">Schedule Time</th>
+                                <th class="py-3 px-4 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="alertTableRows" class="divide-y divide-gray-200 text-xs">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="bg-gray-50 px-6 py-3.5 border-t border-gray-200 flex justify-between items-center text-xs">
+                <span class="text-gray-500 font-medium">Assigned projects are removed from this queue and logged in the Notification Center.</span>
+                <button onclick="closeAlertModal()" class="px-5 py-2 bg-blue-900 hover:bg-blue-800 text-white rounded-xl font-semibold transition-colors shadow-sm cursor-pointer">
+                    Close Window
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. NOTIFICATION POPUP MODAL -->
+    <div id="notifPopupModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 md:p-6">
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-150">
+            <div class="bg-blue-950 text-white px-6 py-4 flex items-center justify-between border-b border-blue-900">
+                <div class="flex items-center space-x-3">
+                    <span class="bg-blue-900 text-amber-400 text-xs px-2.5 py-1 rounded font-mono uppercase tracking-wider">
+                        Operational Dispatch
+                    </span>
+                    <h3 class="text-base sm:text-lg font-bold">
+                        Inspection Dispatches & Field Audits Center
+                    </h3>
+                </div>
+                <button onclick="closeNotificationModal()" class="text-gray-400 hover:text-white bg-blue-900/50 hover:bg-blue-900 p-2 rounded-xl transition-colors cursor-pointer">
+                    ✕
+                </button>
+            </div>
+
+            <div class="flex-1 overflow-auto p-5 space-y-3" id="notifModalBody">
+            </div>
+
+            <div class="bg-gray-50 px-6 py-3.5 border-t border-gray-200 flex justify-between items-center text-xs">
+                <span class="text-gray-500 font-medium">Field inspection dispatches undergoing quality audit.</span>
+                <button onclick="closeNotificationModal()" class="px-5 py-2 bg-blue-900 hover:bg-blue-800 text-white rounded-xl font-semibold transition-colors shadow-sm cursor-pointer">
+                    Close Window
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Official Portal Footer -->
+    <footer class="bg-blue-950 text-gray-300 py-4 px-8 mt-6 border-t border-blue-900 text-xs">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-2">
+            <p>Member of Parliament Local Area Development Scheme (MPLADS) Portal</p>
+            <p class="text-gray-400">District Collectorate Node • Statutory Execution & Inspection</p>
+        </div>
+    </footer>
+
+    <!-- INTERACTIVE STATE ENGINE -->
+    <script>
+        const inspectorOptions = [
+            'Er. S. K. Sharma (EE, PWD)',
+            'A. K. Meena (AEN, PHED)',
+            'Rajesh Gupta (Nodal ADEN)',
+            'Smt. Kavita Sen (Principal & Field Officer)',
+            'Dr. R. P. Verma (Divisional Officer)'
+        ];
+
+        const scheduleOptions = [
+            'Within 24 Hours (Immediate)',
+            'Within 3 Days',
+            'Within 1 Week',
+            'Next Scheduled Fortnightly Audit'
+        ];
+
+        let flaggedAlerts = [];
+
+        function getActiveAlerts() {
+            const defaultAlerts = [
+                {
+                    id: 'KT-AL-101',
+                    title: 'Construction of Community Hall & Approach Road',
+                    reason: 'Contractor Abandoned Foundation Work (> 6 Mos Delay)',
+                    location: 'Sangod Block'
+                },
+                {
+                    id: 'KT-AL-102',
+                    title: 'Solar Powered Deep Tube-Well & Distribution Pipeline',
+                    reason: 'Railway NOC Pending for Electrical Cable Crossing',
+                    location: 'Ladpura Block'
+                },
+                {
+                    id: 'KT-AL-103',
+                    title: 'Upgradation of Primary Health Sub-Centre',
+                    reason: 'Non-submission of Audited UC for 1st Advance',
+                    location: 'Digod Block'
+                }
+            ];
+
+            const customAlerts = JSON.parse(localStorage.getItem('district_custom_alerts') || '[]');
+            const assignedIds = JSON.parse(localStorage.getItem('district_assigned_alert_ids') || '[]');
+
+            let combined = [...customAlerts];
+            defaultAlerts.forEach(d => {
+                if (!combined.some(c => c.id === d.id)) {
+                    combined.push(d);
+                }
+            });
+
+            return combined.filter(item => !assignedIds.includes(item.id));
+        }
+
+        function getNotificationDispatches() {
+            const defaults = [
+                {
+                    id: 'KT-EX-203',
+                    title: 'Concrete Drainage Network & Interlocking Pavement',
+                    inspector: 'Rajesh Gupta (Nodal ADEN)',
+                    schedule: 'Within 24 Hours',
+                    time: 'Dispatched Today, 10:15 AM'
+                }
+            ];
+            const stored = JSON.parse(localStorage.getItem('district_dispatches') || 'null');
+            if (!stored) {
+                localStorage.setItem('district_dispatches', JSON.stringify(defaults));
+                return defaults;
+            }
+            return stored;
+        }
+
+        function renderAlertTable() {
+            flaggedAlerts = getActiveAlerts();
+            const tbody = document.getElementById('alertTableRows');
+            tbody.innerHTML = '';
+
+            if (flaggedAlerts.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="py-10 text-center text-gray-400 font-medium text-xs">
+                            ✓ No pending alerts. All flagged projects have been assigned for inspection.
+                        </td>
+                    </tr>
+                `;
+            } else {
+                flaggedAlerts.forEach((alert, index) => {
+                    const isMpDirective = alert.reason.includes("DIRECTIVE FROM HON'BLE MP");
+                    const row = document.createElement('tr');
+                    row.className = isMpDirective ? 'bg-amber-50/70 hover:bg-amber-100/50 transition-colors' : 'hover:bg-rose-50/30 transition-colors';
+                    row.innerHTML = `
+                        <td class="py-3 px-4 font-bold text-gray-900 max-w-xs">
+                            <span class="font-mono text-[10px] font-bold ${isMpDirective ? 'text-amber-900 bg-amber-100 border-amber-300' : 'text-rose-700 bg-rose-50 border-rose-200'} border px-1.5 py-0.5 rounded block w-max mb-0.5">${alert.id}</span>
+                            ${alert.title}
+                            <span class="text-[10px] text-gray-500 block font-normal">${alert.location}</span>
+                        </td>
+                        <td class="py-3 px-4 text-xs font-semibold ${isMpDirective ? 'text-amber-950 font-bold' : 'text-rose-900'} max-w-xs">
+                            <span class="${isMpDirective ? 'bg-amber-100 border-amber-300 text-amber-950' : 'bg-rose-50 border-rose-200'} border px-2 py-1 rounded-md block">
+                                ⚠ ${alert.reason}
+                            </span>
+                        </td>
+                        <td class="py-3 px-3">
+                            <select id="insp-select-${index}" class="bg-white border border-gray-300 text-gray-900 text-xs rounded-lg px-2.5 py-1.5 font-medium focus:ring-1 focus:ring-blue-900 focus:outline-none w-full">
+                                ${inspectorOptions.map(insp => `<option value="${insp}">${insp}</option>`).join('')}
+                            </select>
+                        </td>
+                        <td class="py-3 px-3">
+                            <select id="sched-select-${index}" class="bg-white border border-gray-300 text-gray-900 text-xs rounded-lg px-2.5 py-1.5 font-medium focus:ring-1 focus:ring-blue-900 focus:outline-none w-full">
+                                ${scheduleOptions.map(sch => `<option value="${sch}">${sch}</option>`).join('')}
+                            </select>
+                        </td>
+                        <td class="py-3 px-4 text-right">
+                            <button onclick="assignProjectForInspection(${index})" 
+                                    class="px-4 py-1.5 bg-blue-900 hover:bg-blue-800 active:scale-95 text-white text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer">
+                                Assign →
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+
+            // Sync badge counts
+            document.getElementById('alertBadge').innerText = flaggedAlerts.length;
+            document.getElementById('kpiAlertCount').innerText = flaggedAlerts.length;
+        }
+
+        function renderNotificationList() {
+            const dispatches = getNotificationDispatches();
+            const container = document.getElementById('notifModalBody');
+            container.innerHTML = '';
+
+            if (dispatches.length === 0) {
+                container.innerHTML = `
+                    <div class="py-8 text-center text-gray-400 font-medium text-xs">
+                        No active inspection dispatches recorded yet.
+                    </div>
+                `;
+            } else {
+                dispatches.forEach(notif => {
+                    const card = document.createElement('div');
+                    card.className = "bg-gray-50 border border-gray-200 hover:border-blue-300 rounded-xl p-3.5 shadow-sm flex flex-col sm:flex-row justify-between sm:items-center gap-3 transition-colors";
+                    card.innerHTML = `
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <span class="font-mono text-[10px] font-bold text-blue-900 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded">${notif.id}</span>
+                                <span class="text-[10px] text-gray-500 font-semibold">${notif.time}</span>
+                            </div>
+                            <h4 class="font-bold text-gray-900 text-sm mt-1">${notif.title}</h4>
+                            <p class="text-xs text-gray-600 mt-0.5">
+                                Assigned Official: <strong class="text-gray-900">${notif.inspector}</strong> • Timeline: <strong class="text-blue-900 font-semibold">${notif.schedule}</strong>
+                            </p>
+                        </div>
+                        <div class="self-start sm:self-auto">
+                            <span class="inline-flex items-center px-3 py-1 rounded-lg text-[11px] font-bold bg-amber-50 text-amber-900 border border-amber-300 shadow-sm">
+                                ⏳ Field Inspection In-Progress
+                            </span>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            }
+
+            document.getElementById('notifBadge').innerText = dispatches.length;
+        }
+
+        function assignProjectForInspection(index) {
+            const assigned = flaggedAlerts[index];
+            if (!assigned) return;
+
+            const insp = document.getElementById(`insp-select-${index}`).value;
+            const sched = document.getElementById(`sched-select-${index}`).value;
+
+            let assignedIds = JSON.parse(localStorage.getItem('district_assigned_alert_ids') || '[]');
+            if (!assignedIds.includes(assigned.id)) {
+                assignedIds.push(assigned.id);
+                localStorage.setItem('district_assigned_alert_ids', JSON.stringify(assignedIds));
+            }
+
+            let customAlerts = JSON.parse(localStorage.getItem('district_custom_alerts') || '[]');
+            customAlerts = customAlerts.filter(a => a.id !== assigned.id);
+            localStorage.setItem('district_custom_alerts', JSON.stringify(customAlerts));
+
+            let dispatches = getNotificationDispatches();
+            dispatches.unshift({
+                id: assigned.id,
+                title: assigned.title,
+                inspector: insp,
+                schedule: sched,
+                time: 'Dispatched Just Now'
+            });
+            localStorage.setItem('district_dispatches', JSON.stringify(dispatches));
+
+            let mpNotifs = JSON.parse(localStorage.getItem('mp_notifications') || '[]');
+            mpNotifs.unshift({
+                id: assigned.id,
+                title: `Collectorate Compliance: Inspector Assigned for ${assigned.id}`,
+                time: 'Just now',
+                detail: `District Collector {{ district_name }} assigned ${insp} to conduct on-site audit (${sched}).`
+            });
+            localStorage.setItem('mp_notifications', JSON.stringify(mpNotifs));
+
+            renderAlertTable();
+            renderNotificationList();
+        }
+
+        function openAlertModal() {
+            renderAlertTable();
+            document.getElementById('alertPopupModal').classList.remove('hidden');
+        }
+        function closeAlertModal() {
+            document.getElementById('alertPopupModal').classList.add('hidden');
+        }
+
+        function openNotificationModal() {
+            renderNotificationList();
+            document.getElementById('notifPopupModal').classList.remove('hidden');
+        }
+        function closeNotificationModal() {
+            document.getElementById('notifPopupModal').classList.add('hidden');
+        }
+
+        function toggleTableMode(mode) {
+            const execView = document.getElementById('executionView');
+            const inspView = document.getElementById('inspectionView');
+            const badge = document.getElementById('modeBadge');
+            const subtitle = document.getElementById('modeSubtitle');
+
+            if (mode === 'inspection') {
+                execView.classList.add('hidden');
+                inspView.classList.remove('hidden');
+                badge.innerText = "Inspection Panel";
+                subtitle.innerText = "On-site quality audits, assigned inspectors, completion status, and field observation reports";
+            } else {
+                inspView.classList.add('hidden');
+                execView.classList.remove('hidden');
+                badge.innerText = "Execution Panel";
+                subtitle.innerText = "Tracking project schedules, location, area scope, outlays and physical progress";
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            renderAlertTable();
+            renderNotificationList();
+        });
+
+        window.onclick = function(event) {
+            const alertModal = document.getElementById('alertPopupModal');
+            const notifModal = document.getElementById('notifPopupModal');
+            if (event.target === alertModal) closeAlertModal();
+            if (event.target === notifModal) closeNotificationModal();
+        };
+    </script>
+
+</body>
+</html>

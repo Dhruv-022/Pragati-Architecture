@@ -1,0 +1,112 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ state_name }} Works - MoSPI Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-800 min-h-screen flex flex-col justify-between">
+    <div class="max-w-7xl mx-auto px-6 py-8 w-full flex-1">
+        
+        <!-- Back Navigation -->
+        <a href="{% url 'mospi_dashboard' %}" class="text-xs font-bold text-blue-600 hover:underline mb-4 inline-block">
+            ← Back to National Command Center
+        </a>
+
+        <!-- Header -->
+        <div class="bg-blue-950 text-white p-6 rounded-2xl shadow-sm mb-6 flex flex-col md:flex-row justify-between md:items-center gap-4">
+            <div>
+                <span class="text-xs font-semibold uppercase tracking-wider bg-amber-500 text-blue-950 px-2.5 py-0.5 rounded">
+                    State Jurisdiction Overview
+                </span>
+                <h1 class="text-2xl font-extrabold mt-1">{{ state_name }}</h1>
+                <p class="text-xs text-blue-200 mt-1">Total Recommended Works Tracked: {{ total_projects|default:"0" }}</p>
+            </div>
+            <div class="text-xs text-blue-200 bg-blue-900/60 border border-blue-800 px-4 py-2 rounded-xl">
+                Showing Page <span class="font-bold text-white">{{ page_obj.number }}</span> of <span class="font-bold text-white">{{ page_obj.paginator.num_pages }}</span>
+            </div>
+        </div>
+
+        <!-- Projects Table -->
+        <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden mb-6">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50 border-b border-gray-200">
+                            <th class="px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-gray-500 w-24">Sr No</th>
+                            <th class="px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-gray-500">Work & Description</th>
+                            <th class="px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-gray-500">Category</th>
+                            <th class="px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-gray-500">Constituency / IDA</th>
+                            <th class="px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-gray-500">Hon'ble MP</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        {% for project in projects %}
+                        <tr class="hover:bg-blue-50/40 transition-colors">
+                            <td class="px-5 py-3.5 font-mono text-xs text-gray-500">
+                                #{{ project.sr_no|default:forloop.counter }}
+                            </td>
+                            <td class="px-5 py-3.5 text-sm text-gray-800">
+                                <div class="font-semibold text-gray-900">
+                                    {{ project.work|default:"Infrastructure Development Work" }}
+                                </div>
+                                {% if project.work_description and project.work_description != project.work %}
+                                <div class="text-xs text-gray-500 mt-0.5 line-clamp-2">
+                                    {{ project.work_description }}
+                                </div>
+                                {% endif %}
+                            </td>
+                            <td class="px-5 py-3.5 text-xs">
+                                <span class="px-2.5 py-1 rounded bg-slate-100 text-slate-700 font-medium">
+                                    {{ project.work_category|default:"General" }}
+                                </span>
+                            </td>
+                            <td class="px-5 py-3.5 text-xs text-gray-700">
+                                <div class="font-medium text-gray-900">{{ project.constituency|default:"Constituency N/A" }}</div>
+                                <div class="text-[11px] text-gray-500">{{ project.ida|default:"District Authority" }}</div>
+                            </td>
+                            <td class="px-5 py-3.5 text-xs font-medium text-indigo-900">
+                                {{ project.mp_name|default:"Representative" }}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="px-6 py-12 text-center text-sm text-gray-500">
+                                No works found registered under {{ state_name }}.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pagination Controls -->
+        {% if page_obj.has_other_pages %}
+        <div class="flex items-center justify-between bg-white px-5 py-3.5 rounded-xl border border-gray-200 text-xs">
+            <div>
+                Showing <span class="font-semibold">{{ page_obj.start_index }}</span> to <span class="font-semibold">{{ page_obj.end_index }}</span> of <span class="font-semibold">{{ total_projects }}</span> works
+            </div>
+            <div class="flex items-center gap-1.5">
+                {% if page_obj.has_previous %}
+                    <a href="?page=1" class="px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50">« First</a>
+                    <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50">‹ Prev</a>
+                {% endif %}
+
+                <span class="px-3 py-1.5 bg-blue-950 text-white font-bold rounded-lg">
+                    {{ page_obj.number }}
+                </span>
+
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50">Next ›</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}" class="px-3 py-1.5 border border-gray-200 rounded-lg hover:bg-gray-50">Last »</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+</body>
+</html>

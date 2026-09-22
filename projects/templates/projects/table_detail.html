@@ -1,0 +1,161 @@
+{% load project_extras %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Inspecting Module: {{ current_table }}</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-800 min-h-screen flex flex-col justify-between">
+
+    <!-- Top Tricolor Accent Bar -->
+    <div class="h-1.5 w-full bg-gradient-to-r from-orange-500 via-white to-green-600"></div>
+
+    <!-- Navbar / Header Bar -->
+    <div class="bg-white border-b border-gray-200 px-8 py-5 shadow-sm flex items-center justify-between">
+        <div class="flex items-center space-x-4">
+            <a href="{% url 'projects:data_overview' %}" class="bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium transition-colors shadow-sm flex items-center space-x-1">
+                <span>←</span><span>Back to Overview</span>
+            </a>
+            <div>
+                <span class="text-xs font-semibold uppercase tracking-wider text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-0.5 rounded">
+                    Active Dataset View
+                </span>
+                <h1 class="text-xl font-extrabold text-blue-950 mt-0.5 font-mono">Table: {{ current_table }}</h1>
+            </div>
+        </div>
+        <div class="hidden md:block text-xs text-blue-800 bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-lg font-medium">
+            💡 Click any project row to view all fields in a popup
+        </div>
+    </div>
+
+    <!-- Data Table Container -->
+    <div class="max-w-7xl mx-auto w-full flex-1 p-6 flex flex-col overflow-hidden">
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm flex-1 flex flex-col overflow-hidden">
+            
+            <div class="overflow-auto flex-1">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-blue-950 text-white text-xs uppercase tracking-wider sticky top-0 border-b border-blue-900">
+                            {% for col in columns %}
+                                <th class="p-4 font-semibold tracking-wide whitespace-nowrap">{{ col }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200 text-sm">
+                        {% for row in records %}
+                            <!-- Clicking any row triggers the detail popup modal -->
+                            <tr onclick="openRecordModal({{ forloop.counter0 }})" class="hover:bg-blue-50/80 transition-colors cursor-pointer" title="Click to view full record details">
+                                {% for col in columns %}
+                                    <td class="p-4 text-gray-700 whitespace-nowrap max-w-xs truncate">{{ row|get_item:col }}</td>
+                                {% endfor %}
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="{{ columns|length }}" class="text-center py-12 text-gray-500">
+                                    No records found in this dataset view.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination Footer -->
+            <div class="bg-gray-50 px-8 py-4 border-t border-gray-200 flex items-center justify-between">
+                <span class="text-xs text-gray-600 font-medium">Navigating database records securely</span>
+                <div class="space-x-3">
+                    {% if has_prev %}
+                        <a href="?offset={{ prev_offset }}" class="px-4 py-2 bg-white hover:bg-gray-100 border border-gray-300 rounded-xl text-sm font-medium text-gray-700 transition-colors shadow-sm">Previous 50</a>
+                    {% endif %}
+                    <a href="?offset={{ next_offset }}" class="px-4 py-2 bg-blue-900 hover:bg-blue-800 rounded-xl text-sm font-medium text-white transition-colors shadow-sm">Next 50 →</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- RECORD DETAIL POPUP MODAL -->
+    <div id="recordModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 md:p-8">
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-150">
+            
+            <!-- Modal Header -->
+            <div class="bg-blue-950 text-white px-6 py-4 flex items-center justify-between border-b border-blue-900">
+                <div class="flex items-center space-x-3">
+                    <span class="bg-blue-900 text-amber-400 text-xs px-2.5 py-1 rounded font-mono uppercase tracking-wider">Record Inspector</span>
+                    <h3 class="text-lg font-bold">Complete Project Details</h3>
+                </div>
+                <button onclick="closeRecordModal()" class="text-gray-400 hover:text-white bg-blue-900/50 hover:bg-blue-900 p-2 rounded-xl transition-colors">
+                    ✕
+                </button>
+            </div>
+
+            <!-- Modal Content (Vertical Key-Value Attributes List) -->
+            <div class="flex-1 overflow-auto p-6 space-y-4" id="modalRecordContent">
+                <!-- Injected dynamically via JS -->
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="bg-gray-50 px-6 py-3 border-t border-gray-200 flex justify-end">
+                <button onclick="closeRecordModal()" class="px-5 py-2 bg-blue-900 hover:bg-blue-800 text-white rounded-xl text-sm font-semibold transition-colors shadow-sm">Close Window</button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Official Footer -->
+    <footer class="bg-blue-950 text-gray-300 py-4 px-8 mt-6 border-t border-blue-900 text-xs">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-2">
+            <p>Member of Parliament Local Area Development Scheme (MPLADS) Portal</p>
+            <p class="text-gray-400">Government Data Introspection Module</p>
+        </div>
+    </footer>
+
+    <!-- POPUP MODAL LOGIC SCRIPT -->
+    <script>
+        const recordsData = {{ records_json|safe }};
+
+        function openRecordModal(index) {
+            const record = recordsData[index];
+            if (!record) return;
+
+            const container = document.getElementById('modalRecordContent');
+            container.innerHTML = '';
+
+            // Loop through all column headers and values for this specific row
+            for (const [key, value] of Object.entries(record)) {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = "grid grid-cols-1 md:grid-cols-3 gap-2 pb-3 border-b border-gray-100 text-sm";
+                
+                const label = document.createElement('div');
+                label.className = "font-semibold text-gray-500 uppercase text-xs tracking-wider font-mono self-center";
+                label.innerText = key;
+
+                const val = document.createElement('div');
+                val.className = "md:col-span-2 text-gray-900 font-medium break-words bg-gray-50 p-2.5 rounded-lg border border-gray-100";
+                val.innerText = (value !== null && value !== undefined && value !== "") ? value : "—";
+
+                rowDiv.appendChild(label);
+                rowDiv.appendChild(val);
+                container.appendChild(rowDiv);
+            }
+
+            document.getElementById('recordModal').classList.remove('hidden');
+        }
+
+        function closeRecordModal() {
+            document.getElementById('recordModal').classList.add('hidden');
+        }
+
+        // Close modal when clicking outside the popup box
+        window.onclick = function(event) {
+            const modal = document.getElementById('recordModal');
+            if (event.target === modal) {
+                closeRecordModal();
+            }
+        }
+    </script>
+
+</body>
+</html>

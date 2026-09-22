@@ -1,0 +1,300 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ project.project_name }} - MPLADS Portal Diagnostics</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100 text-gray-800 min-h-screen flex flex-col justify-between">
+
+    <!-- Top Tricolor Accent Bar -->
+    <div class="h-1.5 w-full bg-gradient-to-r from-orange-500 via-white to-green-600"></div>
+
+    <div class="max-w-7xl mx-auto px-6 py-8 w-full flex-1 flex flex-col space-y-6">
+        
+        <!-- Navigation & Header Bar -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <a href="{% url 'projects:data_overview' %}" class="inline-flex items-center space-x-2 bg-white hover:bg-gray-50 border border-gray-300 text-gray-700 text-xs font-semibold px-4 py-2.5 rounded-xl transition-colors shadow-sm">
+                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                </svg>
+                <span>Back to Command Center</span>
+            </a>
+
+            <div class="flex items-center space-x-3">
+                <span class="text-xs font-bold uppercase tracking-wider bg-blue-50 border border-blue-200 text-blue-900 px-3 py-1.5 rounded-lg">
+                    Project Diagnostics
+                </span>
+                <span class="text-xs font-mono bg-white border border-gray-200 text-gray-700 px-3 py-1.5 rounded-lg shadow-sm">
+                    ID: {{ project.project_id }}
+                </span>
+            </div>
+        </div>
+
+        <!-- Hero Card: Title & AI Description Button -->
+        <div class="bg-white border border-gray-200 rounded-2xl p-8 shadow-sm flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+            <div class="space-y-2 max-w-3xl">
+                <div class="flex items-center space-x-2">
+                    <span class="text-xs font-semibold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-0.5 rounded">
+                        Government of India
+                    </span>
+                    <span class="text-xs font-medium text-gray-500">Ministry of Statistics and Programme Implementation</span>
+                </div>
+                <h1 class="text-2xl md:text-3xl font-extrabold text-blue-950 tracking-tight leading-snug">
+                    {{ project.project_name }}
+                </h1>
+                <p class="text-xs text-gray-500 font-mono">
+                    {{ project.metadata }}
+                </p>
+            </div>
+
+            <!-- Get AI Description Button -->
+            <button onclick="openAiModal()" class="bg-indigo-900 hover:bg-indigo-800 text-white font-semibold text-sm px-6 py-3.5 rounded-xl shadow-md transition-all flex items-center space-x-2.5 cursor-pointer">
+                <svg class="w-5 h-5 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                </svg>
+                <span>Get AI Description</span>
+            </button>
+        </div>
+
+        <!-- GRID: Particulars on Left (2 Cols), Milestone Ledger on Right (1 Col) -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            
+            <!-- Left 2 Columns: Project Particulars Grid -->
+            <div class="lg:col-span-2 bg-white border border-gray-200 rounded-2xl p-8 shadow-sm flex flex-col justify-between">
+                <div>
+                    <div class="border-b border-gray-200 pb-4 mb-6">
+                        <h2 class="text-sm font-bold uppercase tracking-wider text-blue-950 flex items-center space-x-2">
+                            <span class="w-2 h-2 rounded-full bg-blue-900"></span>
+                            <span>Project Particulars & Administrative Metadata</span>
+                        </h2>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-8">
+                        <div class="space-y-1">
+                            <p class="text-[11px] font-bold uppercase tracking-wider text-gray-400 font-mono">Member of Parliament</p>
+                            <p class="text-sm font-semibold text-gray-900">{{ project.member_of_parliament }}</p>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-[11px] font-bold uppercase tracking-wider text-gray-400 font-mono">Implementing Agency</p>
+                            <p class="text-sm font-semibold text-gray-900">{{ project.implementing_agency }}</p>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-[11px] font-bold uppercase tracking-wider text-gray-400 font-mono">Date of Sanction</p>
+                            <p class="text-sm font-semibold text-gray-900">{{ project.date_of_sanction }}</p>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-[11px] font-bold uppercase tracking-wider text-gray-400 font-mono">Scheduled Completion</p>
+                            <p class="text-sm font-semibold text-gray-900">{{ project.scheduled_completion }}</p>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-[11px] font-bold uppercase tracking-wider text-gray-400 font-mono">Approved Cost</p>
+                            <p class="text-base font-black text-blue-900">{{ project.approved_cost }}</p>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-[11px] font-bold uppercase tracking-wider text-gray-400 font-mono">Revised Cost</p>
+                            <p class="text-base font-black text-indigo-900">{{ project.revised_cost }}</p>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-[11px] font-bold uppercase tracking-wider text-gray-400 font-mono">Expenditure Booked</p>
+                            <p class="text-base font-black text-emerald-800">{{ project.expenditure_booked }}</p>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-[11px] font-bold uppercase tracking-wider text-gray-400 font-mono">Payments Released</p>
+                            <p class="text-base font-black text-amber-800">{{ project.payments_released }}</p>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-[11px] font-bold uppercase tracking-wider text-gray-400 font-mono">Physical Progress</p>
+                            <p class="text-sm font-semibold text-gray-900">{{ project.physical_progress }}</p>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-[11px] font-bold uppercase tracking-wider text-gray-400 font-mono">Completion Status</p>
+                            <p class="text-sm font-semibold text-amber-700">{{ project.completion_status }}</p>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-[11px] font-bold uppercase tracking-wider text-gray-400 font-mono">Last Inspection</p>
+                            <p class="text-sm font-semibold text-gray-900">{{ project.last_inspection }}</p>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-[11px] font-bold uppercase tracking-wider text-gray-400 font-mono">Utilisation Certificate</p>
+                            <p class="text-sm font-semibold text-emerald-700">{{ project.utilization_certificate }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Milestone Ledger Timeline -->
+            <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm flex flex-col">
+                <div class="border-b border-gray-200 pb-4 mb-5">
+                    <h2 class="text-sm font-bold uppercase tracking-wider text-blue-950">Milestone Ledger</h2>
+                    <p class="text-xs text-gray-400 mt-0.5">Sequential stage tracking</p>
+                </div>
+
+                <div class="relative pl-6 space-y-6 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-gray-200 flex-1">
+                    {% for m in project.milestones %}
+                        <div class="relative">
+                            <!-- Timeline Node Bullet -->
+                            <span class="absolute -left-6 top-1 w-3 h-3 rounded-full border-2 border-white shadow-sm {% if m.is_completed %}bg-emerald-500{% else %}bg-amber-400{% endif %}"></span>
+                            
+                            <div>
+                                <h3 class="text-xs font-bold text-gray-900">{{ m.title }}</h3>
+                                <p class="text-[11px] text-gray-500 mt-0.5">Due {{ m.due_date }} • <span class="font-semibold {% if m.is_completed %}text-emerald-600{% else %}text-amber-600{% endif %}">{{ m.status }}</span></p>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- AI COMPREHENSIVE DESCRIPTION POPUP MODAL -->
+    <div id="aiModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 md:p-8">
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden">
+            
+            <!-- Modal Header -->
+            <div class="bg-blue-950 text-white px-6 py-4 flex items-center justify-between border-b border-blue-900">
+                <div class="flex items-center space-x-3">
+                    <span class="bg-indigo-600 text-white text-xs px-2.5 py-1 rounded font-mono uppercase tracking-wider">AI Executive Intelligence</span>
+                    <h3 class="text-lg font-bold">Comprehensive Project Narrative & Analytics</h3>
+                </div>
+                <button onclick="closeAiModal()" class="text-gray-400 hover:text-white bg-blue-900/50 hover:bg-blue-900 p-2 rounded-xl transition-colors cursor-pointer">
+                    ✕
+                </button>
+            </div>
+
+            <!-- Modal Content (Scrollable) -->
+            <div class="flex-1 overflow-auto p-8 space-y-6 text-gray-700 text-sm leading-relaxed">
+                
+                <!-- Human-Like AI Narrative Summary -->
+                <div class="bg-indigo-50/60 border border-indigo-100 p-5 rounded-xl space-y-3">
+                    <h4 class="font-bold text-indigo-950 text-base flex items-center space-x-2">
+                        <svg class="w-5 h-5 text-indigo-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                        </svg>
+                        <span>Executive Summary & Performance Analysis</span>
+                    </h4>
+                    <p>
+                        The project designated as <strong>{{ project.project_name }}</strong> (ID: <span class="font-mono">{{ project.project_id }}</span>) is currently administered under the MPLADS framework with execution handled by <strong>{{ project.implementing_agency }}</strong>. Represented under the constituency oversight of <strong>{{ project.member_of_parliament }}</strong>, this work was officially sanctioned on <strong>{{ project.date_of_sanction }}</strong> with a scheduled completion target of <strong>{{ project.scheduled_completion }}</strong>.
+                    </p>
+                    <p>
+                        Financial monitoring indicates an approved baseline allocation of <strong>{{ project.approved_cost }}</strong>, adjusted to a revised estimate of <strong>{{ project.revised_cost }}</strong>. Current records reflect an expenditure booking of <strong>{{ project.expenditure_booked }}</strong> alongside total payments released amounting to <strong>{{ project.payments_released }}</strong>. With physical progress recorded at <strong>{{ project.physical_progress }}</strong> and completion status currently marked as <em>{{ project.completion_status }}</em>, the project maintains a utilization certificate status of <strong>{{ project.utilization_certificate }}</strong> following the last physical inspection on <strong>{{ project.last_inspection }}</strong>.
+                    </p>
+                </div>
+
+                <!-- Embedded Charts inside Popup -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 flex flex-col justify-between">
+                        <h5 class="text-xs font-bold text-blue-950 uppercase tracking-wider mb-3">Milestone & Disbursement Curve</h5>
+                        <div class="relative h-48">
+                            <canvas id="modalMilestoneChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 flex flex-col justify-between">
+                        <h5 class="text-xs font-bold text-blue-950 uppercase tracking-wider mb-3">Cost Variance Breakdown</h5>
+                        <div class="relative h-48">
+                            <canvas id="modalCostChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="bg-gray-50 px-6 py-4 border-t border-gray-200 flex justify-end">
+                <button onclick="closeAiModal()" class="px-5 py-2 bg-blue-900 hover:bg-blue-800 text-white rounded-xl text-sm font-semibold transition-colors shadow-sm cursor-pointer">Close Report</button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Official Footer -->
+    <footer class="bg-blue-950 text-gray-300 py-4 px-8 border-t border-blue-900 text-xs">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-2">
+            <p>Member of Parliament Local Area Development Scheme (MPLADS) Diagnostics</p>
+            <p class="text-gray-400">Government Data Introspection Module</p>
+        </div>
+    </footer>
+
+    <!-- POPUP MODAL & CHARTS SCRIPT -->
+    <script>
+        let modalChartsInitialized = false;
+
+        function openAiModal() {
+            document.getElementById('aiModal').classList.remove('hidden');
+            
+            if (!modalChartsInitialized) {
+                modalChartsInitialized = true;
+                
+                // Initialize Modal Milestone Chart
+                const mCtx = document.getElementById('modalMilestoneChart').getContext('2d');
+                new Chart(mCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Stage 1', 'Stage 2', 'Stage 3', 'Stage 4', 'Current'],
+                        datasets: [{
+                            label: 'Fund Release (₹ Lakh)',
+                            data: [150, 320, 510, 680, 787],
+                            borderColor: '#1e3a8a',
+                            backgroundColor: 'rgba(30, 58, 138, 0.05)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.3,
+                            pointRadius: 3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { beginAtZero: true, grid: { color: '#f3f4f6' } },
+                            x: { grid: { display: false } }
+                        }
+                    }
+                });
+
+                // Initialize Modal Cost Chart
+                const cCtx = document.getElementById('modalCostChart').getContext('2d');
+                new Chart(cCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Approved', 'Revised', 'Booked', 'Released'],
+                        datasets: [{
+                            label: 'Amount (₹ L)',
+                            data: [746.50, 796.66, 796.66, 787.54],
+                            backgroundColor: ['#1e3a8a', '#4338ca', '#059669', '#d97706'],
+                            borderRadius: 6,
+                            barThickness: 24,
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { beginAtZero: true, grid: { color: '#f3f4f6' } },
+                            x: { grid: { display: false }, ticks: { font: { size: 9 } } }
+                        }
+                    }
+                });
+            }
+        }
+
+        function closeAiModal() {
+            document.getElementById('aiModal').classList.add('hidden');
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('aiModal');
+            if (event.target === modal) {
+                closeAiModal();
+            }
+        }
+    </script>
+
+</body>
+</html>

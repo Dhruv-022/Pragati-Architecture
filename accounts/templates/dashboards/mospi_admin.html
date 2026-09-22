@@ -1,0 +1,493 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MoSPI National Command Center - MPLADS Portal</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 text-gray-800 min-h-screen flex flex-col justify-between">
+
+    <!-- Top Tricolor Accent Bar -->
+    <div class="h-1.5 w-full bg-gradient-to-r from-orange-500 via-white to-green-600"></div>
+
+    <div class="max-w-7xl mx-auto px-6 py-8 w-full flex-1 flex flex-col">
+
+        <!-- MoSPI Apex Header Bar -->
+        <div class="bg-blue-950 text-white border border-blue-900 rounded-2xl p-6 shadow-lg mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
+
+            <div class="flex items-center space-x-5">
+
+                <div class="bg-white p-2.5 rounded-xl border border-blue-200 shadow-md flex items-center justify-center">
+                    <img
+                        src="{% static 'projects/images/mpladlogo.png' %}"
+                        alt="MPLADS Logo"
+                        class="w-14 h-14 object-contain"
+                    >
+                </div>
+
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs font-semibold uppercase tracking-wider bg-amber-500 text-blue-950 px-2.5 py-0.5 rounded shadow-sm">
+                            Apex National Oversight
+                        </span>
+
+                        <span class="text-xs text-blue-300">
+                            Ministry of Statistics and Programme Implementation
+                        </span>
+                    </div>
+
+                    <h1 class="text-2xl md:text-3xl font-extrabold mt-1 tracking-tight">
+                        MoSPI Admin Command Center
+                    </h1>
+
+                    <p class="text-xs md:text-sm text-blue-200">
+                        Pan-India Scheme Monitoring, Fund Flow & Hierarchy Management
+                    </p>
+                </div>
+
+            </div>
+
+            <!-- User Session & Logout -->
+            <div class="flex items-center gap-3">
+
+                <div class="bg-blue-900/80 border border-blue-800 text-white px-5 py-3 rounded-xl text-xs shadow-sm flex flex-col items-end">
+                    <span class="text-blue-300 uppercase tracking-wide">
+                        Logged in as
+                    </span>
+
+                    <strong class="text-amber-400 font-bold text-sm">
+                        {{ request.user.get_full_name|default:request.user.username }}
+                    </strong>
+                </div>
+
+                <a
+                    href="{% url 'logout' %}"
+                    class="bg-red-600 hover:bg-red-700 text-white px-4 py-3 rounded-xl text-xs font-bold transition-colors shadow-sm flex items-center space-x-1"
+                >
+                    <span>Logout</span>
+                </a>
+
+            </div>
+        </div>
+
+
+        <!-- National KPI Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+
+            <!-- Total Projects -->
+            <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm border-l-4 border-l-blue-600">
+
+                <p class="text-[11px] font-bold uppercase tracking-wider text-gray-500">
+                    Pan-India Works Tracked
+                </p>
+
+                <p class="text-2xl font-black text-blue-950 mt-1">
+                    {{ total_projects }}
+                </p>
+
+                <span class="text-[10px] text-gray-400 mt-2 block">
+                    All registered national records
+                </span>
+
+            </div>
+
+
+            <!-- Total Sanctioned Outlay -->
+            <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm border-l-4 border-l-indigo-600">
+
+                <p class="text-[11px] font-bold uppercase tracking-wider text-gray-500">
+                    Total Sanctioned Outlay
+                </p>
+
+                <p
+                    class="text-xl font-black text-indigo-950 mt-1 truncate"
+                    title="{{ total_sanctioned }}"
+                >
+                    {{ total_sanctioned }}
+                </p>
+
+                <span class="text-[10px] text-gray-400 mt-2 block">
+                    Cumulative approved funds
+                </span>
+
+            </div>
+
+
+            <!-- Total Funds Released -->
+            <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm border-l-4 border-l-emerald-600">
+
+                <p class="text-[11px] font-bold uppercase tracking-wider text-gray-500">
+                    Total Funds Disbursed
+                </p>
+
+                <p
+                    class="text-xl font-black text-emerald-950 mt-1 truncate"
+                    title="{{ total_released }}"
+                >
+                    {{ total_released }}
+                </p>
+
+                <span class="text-[10px] text-gray-400 mt-2 block">
+                    Released to states/districts
+                </span>
+
+            </div>
+
+
+            <!-- Completion Volume -->
+            <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm border-l-4 border-l-teal-600">
+
+                <p class="text-[11px] font-bold uppercase tracking-wider text-gray-500">
+                    Delivery Status
+                </p>
+
+                <div class="flex items-baseline space-x-2 mt-1">
+
+                    <span class="text-2xl font-black text-teal-900">
+                        {{ completed_count }}
+                    </span>
+
+                    <span class="text-xs text-gray-500 font-medium">
+                        Completed / {{ in_progress_count }} Active
+                    </span>
+
+                </div>
+
+                <span class="text-[10px] text-gray-400 mt-2 block">
+                    National execution velocity
+                </span>
+
+            </div>
+
+        </div>
+
+
+        <!-- MAIN CONTENT GRID -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+
+
+            <!-- LEFT: STATE / UT SUMMARY TABLE -->
+            <div class="lg:col-span-2 bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+
+                <!-- Table Header -->
+                <div class="px-6 py-4 border-b border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+
+                    <div>
+                        <h3 class="text-sm font-bold text-blue-950 uppercase tracking-wider">
+                            State & Union Territory Overview
+                        </h3>
+
+                        <p class="text-[11px] text-gray-400 mt-1">
+                            National project, MP, fund allocation and completion status
+                        </p>
+                    </div>
+
+                    <span class="text-xs bg-blue-50 text-blue-800 px-2.5 py-1 rounded-md font-semibold whitespace-nowrap">
+                        National Overview
+                    </span>
+
+                </div>
+
+
+                <!-- Table Container -->
+                <div class="overflow-x-auto">
+
+                    <table class="w-full text-left border-collapse">
+
+                        <thead>
+                            <tr class="bg-gray-50 border-b border-gray-200">
+
+                                <th class="px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-gray-500 whitespace-nowrap">
+                                    State / Union Territory
+                                </th>
+
+                                <th class="px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-gray-500 text-center whitespace-nowrap">
+                                    Projects
+                                </th>
+
+                                <th class="px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-gray-500 text-center whitespace-nowrap">
+                                    MPs
+                                </th>
+
+                                <th class="px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-gray-500 text-right whitespace-nowrap">
+                                    Funds Allocated
+                                </th>
+
+                                <th class="px-5 py-3 text-[10px] font-bold uppercase tracking-wider text-gray-500 text-center whitespace-nowrap">
+                                    Completion
+                                </th>
+
+                            </tr>
+                        </thead>
+
+
+                        <tbody class="divide-y divide-gray-100">
+
+                            {% for state in state_summary %}
+
+                            <tr class="hover:bg-blue-50/40 transition-colors cursor-pointer" onclick="window.location='{% url 'state_projects_detail' state.name %}'">
+
+                                <!-- State / UT -->
+                                <td class="px-5 py-3.5">
+
+                                    <div class="font-semibold text-sm text-gray-800">
+                                        {{ state.name }}
+                                    </div>
+
+                                </td>
+
+
+                                <!-- Number of Projects -->
+                                <td class="px-5 py-3.5 text-center">
+
+                                    <span class="inline-flex items-center justify-center min-w-[42px] px-2 py-1 rounded-md bg-blue-50 text-blue-900 text-xs font-bold">
+                                        {{ state.project_count }}
+                                    </span>
+
+                                </td>
+
+
+                                <!-- Number of MPs -->
+                                <td class="px-5 py-3.5 text-center">
+
+                                    <span class="inline-flex items-center justify-center min-w-[42px] px-2 py-1 rounded-md bg-emerald-50 text-emerald-900 text-xs font-bold">
+                                        {{ state.mp_count }}
+                                    </span>
+
+                                </td>
+
+
+                                <!-- Funds Allocated -->
+                                <td class="px-5 py-3.5 text-right whitespace-nowrap">
+
+                                    <span class="text-sm font-semibold text-indigo-900">
+                                        {{ state.funds_allocated }}
+                                    </span>
+
+                                </td>
+
+
+                                <!-- Completion Status -->
+                                <td class="px-5 py-3.5 text-center">
+
+                                    <div class="flex flex-col items-center gap-1">
+
+                                        <span class="text-xs font-bold text-teal-900">
+                                            {{ state.completion_status }}
+                                        </span>
+
+                                        <div class="w-20 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+
+                                            <div
+                                                class="h-full bg-teal-600 rounded-full"
+                                                style="width: {{ state.completion_status }};"
+                                            ></div>
+
+                                        </div>
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+
+                            {% empty %}
+
+                            <tr>
+                                <td
+                                    colspan="5"
+                                    class="px-6 py-12 text-center"
+                                >
+
+                                    <div class="flex flex-col items-center">
+
+                                        <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+                                            <span class="text-gray-400 text-lg">—</span>
+                                        </div>
+
+                                        <p class="text-sm font-semibold text-gray-600">
+                                            No state or union territory data available
+                                        </p>
+
+                                        <p class="text-xs text-gray-400 mt-1">
+                                            State-wise statistics will appear here once data is available.
+                                        </p>
+
+                                    </div>
+
+                                </td>
+                            </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+
+            <!-- RIGHT: QUICK ACTIONS -->
+            <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+
+                <div>
+
+                    <h3 class="text-sm font-bold text-blue-950 uppercase tracking-wider mb-4">
+                        Apex Quick Actions
+                    </h3>
+
+                    <div class="space-y-3">
+
+                        <a
+                            href="{% url 'create_user' %}"
+                            class="w-full bg-blue-900 hover:bg-blue-800 text-white p-3 rounded-xl text-xs font-bold transition-colors shadow-sm flex items-center justify-between"
+                        >
+                            <span>+ Provision New Official</span>
+                            <span>→</span>
+                        </a>
+
+
+                        <a
+                            href="{% url 'manage_users' %}"
+                            class="w-full bg-gray-50 hover:bg-gray-100 border border-gray-300 text-gray-800 p-3 rounded-xl text-xs font-bold transition-colors shadow-sm flex items-center justify-between"
+                        >
+                            <span>Manage Hierarchy Users</span>
+                            <span>→</span>
+                        </a>
+
+
+                        <a
+                            href="{% url 'project_directory' %}"
+                            class="w-full bg-gray-50 hover:bg-gray-100 border border-gray-300 text-gray-800 p-3 rounded-xl text-xs font-bold transition-colors shadow-sm flex items-center justify-between"
+                        >
+                            <span>National Projects Explorer</span>
+                            <span>→</span>
+                        </a>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Security Notice -->
+                <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mt-6">
+
+                    <h4 class="text-xs font-bold text-amber-900 uppercase tracking-wider">
+                        Hierarchy Security Notice
+                    </h4>
+
+                    <p class="text-[11px] text-amber-800 mt-1">
+                        As MoSPI Admin, you hold apex rights to oversee State Nodal Authorities, MPs, and District Authorities pan-India.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- HIERARCHY PERSONNEL ROSTER -->
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm flex flex-col overflow-hidden mb-6">
+
+            <div class="bg-gray-50 border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+
+                <span class="text-xs font-bold uppercase tracking-wider text-blue-900 bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-lg">
+                    Registered Hierarchy Personnel
+                </span>
+
+                <span class="text-xs text-gray-500">
+                    Overview of active stakeholders across the 4-tier administrative structure
+                </span>
+
+            </div>
+
+
+            <div class="p-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+
+                <!-- MoSPI Admins -->
+                <div class="bg-blue-50/50 border border-blue-200 p-4 rounded-xl">
+
+                    <p class="text-xs font-bold uppercase text-blue-900">
+                        MoSPI Admins
+                    </p>
+
+                    <p class="text-2xl font-black text-blue-950 mt-1">
+                        {{ mospi_admins.count }}
+                    </p>
+
+                </div>
+
+
+                <!-- State Nodal Authorities -->
+                <div class="bg-indigo-50/50 border border-indigo-200 p-4 rounded-xl">
+
+                    <p class="text-xs font-bold uppercase text-indigo-900">
+                        State Nodal Authorities
+                    </p>
+
+                    <p class="text-2xl font-black text-indigo-950 mt-1">
+                        {{ state_nodals.count }}
+                    </p>
+
+                </div>
+
+
+                <!-- MPs -->
+                <div class="bg-emerald-50/50 border border-emerald-200 p-4 rounded-xl">
+
+                    <p class="text-xs font-bold uppercase text-emerald-900">
+                        Members of Parliament (MP)
+                    </p>
+
+                    <p class="text-2xl font-black text-emerald-950 mt-1">
+                        {{ mp_officials.count }}
+                    </p>
+
+                </div>
+
+
+                <!-- District Authorities -->
+                <div class="bg-amber-50/50 border border-amber-200 p-4 rounded-xl">
+
+                    <p class="text-xs font-bold uppercase text-amber-900">
+                        District Authorities
+                    </p>
+
+                    <p class="text-2xl font-black text-amber-950 mt-1">
+                        {{ district_authorities.count }}
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- Official Footer -->
+    <footer class="bg-blue-950 text-gray-300 py-4 px-8 mt-6 border-t border-blue-900 text-xs">
+
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-2">
+
+            <p>
+                Member of Parliament Local Area Development Scheme (MPLADS) Portal — MoSPI National Oversight
+            </p>
+
+            <p class="text-gray-400">
+                SIH 2026 Problem Statement 102
+            </p>
+
+        </div>
+
+    </footer>
+
+</body>
+</html>

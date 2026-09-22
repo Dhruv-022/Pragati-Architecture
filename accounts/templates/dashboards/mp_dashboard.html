@@ -1,0 +1,478 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hon'ble MP Portal - Constituency Oversight Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .table-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+        .table-scroll::-webkit-scrollbar-track { background: #f3f4f6; }
+        .table-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .table-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 min-h-screen flex flex-col justify-between">
+
+    <!-- Top Tricolor Accent Line -->
+    <div class="h-1.5 w-full bg-gradient-to-r from-orange-500 via-white to-green-600"></div>
+
+    <div class="max-w-7xl mx-auto px-6 pt-2 pb-6 w-full flex-1 flex flex-col space-y-4">
+
+        <!-- OFFICIAL PORTAL HEADER BAR -->
+        <div class="bg-white border border-gray-200 rounded-2xl px-6 py-3 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div class="flex items-center space-x-4">
+                <div class="bg-gray-50 p-1.5 rounded-xl border border-gray-200 shadow-inner flex items-center justify-center shrink-0 w-14 h-14">
+                    <img src="{% static 'projects/images/mpladlogo.png' %}" 
+                         alt="MPLADS Logo" 
+                         style="width: 48px; height: 48px; max-width: 48px; max-height: 48px; object-fit: contain;" 
+                         class="w-12 h-12 object-contain">
+                </div>
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs font-semibold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-0.5 rounded">
+                            Government of India
+                        </span>
+                        <span class="text-xs font-medium text-gray-500">Ministry of Statistics and Programme Implementation</span>
+                    </div>
+                    <h1 class="text-2xl font-extrabold text-blue-950 mt-0.5 tracking-tight">
+                        Member of Parliament Portal
+                    </h1>
+                    <p class="text-xs md:text-sm text-gray-600 flex flex-wrap items-center gap-2 mt-0.5">
+                        <span>Representative: <strong class="text-blue-950 font-bold">{{ mp_name|default:"Hon'ble Member" }}</strong></span>
+                        <span>•</span>
+                        <span>
+                            {% if is_nominated %}
+                                <strong class="text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded text-xs">
+                                    Nominated Member of Parliament (Pan-India Jurisdiction)
+                                </strong>
+                            {% else %}
+                                <strong class="text-blue-900 font-bold">{{ jurisdiction_label }}</strong>
+                            {% endif %}
+                        </span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Header Controls -->
+            <div class="flex items-center gap-3 self-end md:self-auto shrink-0">
+                <button type="button" onclick="openMpNotifModal()" 
+                        class="relative p-2.5 rounded-xl border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 shadow-sm transition-all active:scale-95 cursor-pointer" 
+                        title="Hon'ble MP Notification Center & Collectorate Dispatches">
+                    <svg class="w-5 h-5 text-blue-950" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                    </svg>
+                    <span id="mpNotifBadge" class="absolute -top-1.5 -right-1.5 bg-blue-900 text-white font-black text-[10px] w-5 h-5 rounded-full flex items-center justify-center ring-2 ring-white shadow">
+                        3
+                    </span>
+                </button>
+
+                <a href="{% url 'projects:data_overview' %}" class="px-4 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs font-bold rounded-xl border border-gray-300 shadow-sm transition-colors">
+                    Public Explorer
+                </a>
+
+                <a href="{% url 'logout' %}" class="inline-flex items-center gap-1.5 px-4 py-2 bg-white hover:bg-red-50 text-gray-700 hover:text-red-700 rounded-xl text-xs font-bold border border-gray-300 shadow-sm transition-all">
+                    <span>Logout</span>
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+
+        <!-- COMPACT KPI SECTION -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+            <!-- Card 1: Financial Status (Tightly Sized) -->
+            <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm border-l-4 border-l-blue-600 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between pb-2 border-b border-gray-100 mb-3">
+                        <div class="flex items-center space-x-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+                            <h2 class="text-xs font-bold text-gray-900 uppercase tracking-wider">Financial Status Overview</h2>
+                        </div>
+                        <span class="text-[10px] font-bold text-blue-900 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded">FY 2025–2026</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                        <div class="p-2.5 rounded-lg bg-gray-50 border border-gray-200 flex flex-col justify-between">
+                            <span class="text-[10px] font-semibold text-gray-500">Total Entitlement Limit</span>
+                            <span class="font-mono text-sm font-extrabold text-blue-950 mt-0.5">₹{{ allocated_limit|floatformat:"0" }}</span>
+                        </div>
+                        <div class="p-2.5 rounded-lg bg-indigo-50/60 border border-indigo-200 flex flex-col justify-between">
+                            <span class="text-[10px] font-semibold text-indigo-900">Sanctioned Amount</span>
+                            <span class="font-mono text-sm font-extrabold text-indigo-950 mt-0.5">₹{{ sanctioned_amount|floatformat:"0" }}</span>
+                        </div>
+                        <div class="p-2.5 rounded-lg bg-amber-50/70 border border-amber-200 flex flex-col justify-between">
+                            <span class="text-[10px] font-semibold text-amber-900">Consented for Calamity</span>
+                            <span class="font-mono text-sm font-extrabold text-amber-950 mt-0.5">₹{{ calamity_consent|floatformat:"0" }}</span>
+                        </div>
+                        <div class="p-2.5 rounded-lg bg-emerald-50/70 border border-emerald-200 flex flex-col justify-between">
+                            <span class="text-[10px] font-semibold text-emerald-900">Uncommitted Balance</span>
+                            <span class="font-mono text-sm font-extrabold text-emerald-900 mt-0.5">₹{{ uncommitted_balance|floatformat:"0" }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-3 pt-2.5 border-t border-gray-100">
+                    <div class="flex justify-between items-center text-xs font-semibold text-gray-700 mb-1">
+                        <span>Fund Utilization Progress</span>
+                        <span class="text-blue-950 font-bold font-mono">{{ financial_progress }}%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                        <div class="bg-blue-900 h-2 rounded-full transition-all duration-500" style="width: {{ financial_progress }}%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 2: Projects Status (Tightly Sized) -->
+            <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm border-l-4 border-l-emerald-600 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between pb-2 border-b border-gray-100 mb-3">
+                        <div class="flex items-center space-x-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
+                            <h2 class="text-xs font-bold text-gray-900 uppercase tracking-wider">Project Progress Summary</h2>
+                        </div>
+                        <span class="text-[10px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">Live Telemetry</span>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2.5">
+                        <div class="p-3 rounded-lg bg-gray-50 border border-gray-200 text-center flex flex-col justify-between">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-gray-500">Total Works</span>
+                            <span class="font-mono text-xl font-black text-blue-950 my-1">{{ total_recommended }}</span>
+                            <span class="text-[10px] text-gray-400 font-semibold">Registered</span>
+                        </div>
+                        <div class="p-3 rounded-lg bg-emerald-50/70 border border-emerald-200 text-center flex flex-col justify-between">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-800">Completed</span>
+                            <span class="font-mono text-xl font-black text-emerald-950 my-1">{{ completed_count }}</span>
+                            <span class="text-[10px] text-emerald-700 font-semibold">Delivered</span>
+                        </div>
+                        <div class="p-3 rounded-lg bg-amber-50/70 border border-amber-200 text-center flex flex-col justify-between">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-amber-800">Not Comp.</span>
+                            <span class="font-mono text-xl font-black text-amber-950 my-1">{{ in_progress_count }}</span>
+                            <span class="text-[10px] text-amber-700 font-semibold">In Pipeline</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-3 pt-2.5 border-t border-gray-100 text-center">
+                    <p class="text-[11px] text-gray-500 font-medium">
+                        Sanctioned and audited under MPLADS statutory execution guidelines
+                    </p>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- BOTTOM MAIN SECTION: District Performance Matrix -->
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm flex flex-col overflow-hidden mb-4">
+            <div class="bg-gray-50 border-b border-gray-200 px-6 py-3 flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <span class="text-xs font-bold uppercase tracking-wider text-blue-900 bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-lg">
+                        District Performance Matrix
+                    </span>
+                    <span class="text-xs text-gray-500 hidden sm:inline">Detailed block & district distribution</span>
+                </div>
+                <span class="text-xs font-semibold text-gray-600 bg-white border border-gray-200 px-3 py-1 rounded-xl shadow-xs">
+                    Jurisdictions: <strong class="text-blue-950">{{ districts_data|length }}</strong>
+                </span>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-blue-950 text-white text-xs uppercase tracking-wider border-b border-blue-900">
+                            <th class="py-3 px-6 font-semibold tracking-wide">District Jurisdiction</th>
+                            <th class="py-3 px-6 font-semibold tracking-wide text-center">Completed Assets</th>
+                            <th class="py-3 px-6 font-semibold tracking-wide text-center">In-Pipeline Works</th>
+                            <th class="py-3 px-6 font-semibold tracking-wide text-center">Flagged Alerts</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200 text-sm bg-white">
+                        {% for row in districts_data %}
+                        <tr class="hover:bg-blue-50/80 transition-colors">
+                            <td class="py-3 px-6 font-bold text-gray-900">
+                                {{ row.name }}
+                            </td>
+
+                            <!-- 1. COMPLETED: Modal Popup -->
+                            <td class="py-3 px-6 text-center">
+                                {% if row.completed > 0 %}
+                                    <button type="button" onclick="openDistrictProjectsModal('{{ row.name }}', 'completed')" 
+                                            class="inline-flex items-center justify-center font-mono font-bold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 px-3.5 py-1 rounded-lg min-w-[42px] text-xs shadow-xs transition-transform active:scale-95 cursor-pointer"
+                                            title="Inspect {{ row.completed }} delivered works in {{ row.name }}">
+                                        {{ row.completed }}
+                                    </button>
+                                {% else %}
+                                    <span class="font-mono text-gray-400 font-bold text-xs">0</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- 2. NOT COMPLETED: Modal Popup -->
+                            <td class="py-3 px-6 text-center">
+                                {% if row.not_completed > 0 %}
+                                    <button type="button" onclick="openDistrictProjectsModal('{{ row.name }}', 'not_completed')" 
+                                            class="inline-flex items-center justify-center font-mono font-bold text-amber-900 bg-amber-50 hover:bg-amber-100 border border-amber-300 px-3.5 py-1 rounded-lg min-w-[42px] text-xs shadow-xs transition-transform active:scale-95 cursor-pointer"
+                                            title="Inspect {{ row.not_completed }} in-pipeline works in {{ row.name }}">
+                                        {{ row.not_completed }}
+                                    </button>
+                                {% else %}
+                                    <span class="font-mono text-gray-400 font-bold text-xs">0</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- 3. ALERT: Dedicated Page Link -->
+                            <td class="py-3 px-6 text-center">
+                                {% if row.alert > 0 %}
+                                    <a href="{% url 'mp_district_alerts' row.name %}" 
+                                       class="inline-flex items-center justify-center font-mono font-black text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-300 px-3.5 py-1 rounded-lg min-w-[42px] text-xs shadow-sm transition-transform active:scale-95 cursor-pointer"
+                                       title="View {{ row.alert }} flagged alert projects in {{ row.name }}">
+                                        {{ row.alert }} ⚠
+                                    </a>
+                                {% else %}
+                                    <span class="font-mono text-gray-400 font-bold text-xs">0</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="p-8 text-center text-sm text-gray-400 font-medium">
+                                No district records assigned under this constituency.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- COMPLETED & IN-PIPELINE PROJECTS MODAL -->
+    <div id="districtProjectsModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 md:p-6">
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-150">
+            
+            <div id="modalHeaderBar" class="bg-blue-950 text-white px-6 py-4 flex items-center justify-between border-b border-blue-900">
+                <div class="flex items-center space-x-3">
+                    <span id="modalCategoryBadge" class="text-xs px-2.5 py-1 rounded font-mono uppercase tracking-wider bg-blue-900 text-amber-400 border border-blue-800"></span>
+                    <h3 class="text-base sm:text-lg font-bold">
+                        District <span id="modalDistrictTitle" class="uppercase"></span> — <span id="modalTypeTitle"></span>
+                    </h3>
+                </div>
+                <button onclick="closeDistrictModal()" class="text-gray-400 hover:text-white bg-blue-900/50 hover:bg-blue-900 p-2 rounded-xl transition-colors cursor-pointer text-base font-bold">
+                    ✕
+                </button>
+            </div>
+
+            <div class="flex-1 overflow-auto p-5 space-y-3" id="modalCardsContainer">
+            </div>
+
+            <div class="bg-gray-50 px-6 py-3.5 border-t border-gray-200 flex justify-between items-center text-xs">
+                <span class="text-gray-500 font-medium">Audit records verified through MPLADS district nodal collectorate registry.</span>
+                <button onclick="closeDistrictModal()" class="px-5 py-2 bg-blue-900 hover:bg-blue-800 text-white rounded-xl font-semibold transition-colors shadow-sm cursor-pointer">
+                    Close Window
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- MP NOTIFICATIONS & COMPLIANCE MODAL -->
+    <div id="mpNotifModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 md:p-6">
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-150">
+            
+            <div class="bg-blue-950 text-white px-6 py-4 flex items-center justify-between border-b border-blue-900">
+                <div class="flex items-center space-x-3">
+                    <span class="bg-blue-900 text-amber-400 text-xs px-2.5 py-1 rounded font-mono uppercase tracking-wider">
+                        Oversight Telemetry
+                    </span>
+                    <h3 class="text-base sm:text-lg font-bold">
+                        Official Dispatches & Compliance Center
+                    </h3>
+                </div>
+                <button onclick="closeMpNotifModal()" class="text-gray-400 hover:text-white bg-blue-900/50 hover:bg-blue-900 p-2 rounded-xl transition-colors cursor-pointer text-base font-bold">
+                    ✕
+                </button>
+            </div>
+
+            <div class="flex-1 overflow-auto p-5 space-y-3" id="mpNotifList">
+            </div>
+
+            <div class="bg-gray-50 px-6 py-3.5 border-t border-gray-200 flex justify-between items-center text-xs">
+                <button onclick="clearMpNotifications()" class="text-gray-500 hover:text-red-700 font-semibold underline cursor-pointer">
+                    Clear all notifications
+                </button>
+                <button onclick="closeMpNotifModal()" class="px-5 py-2 bg-blue-900 hover:bg-blue-800 text-white rounded-xl font-semibold transition-colors shadow-sm cursor-pointer">
+                    Close Window
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Official Portal Footer -->
+    <footer class="bg-blue-950 text-gray-300 py-4 px-8 mt-6 border-t border-blue-900 text-xs">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-2">
+            <p>Member of Parliament Local Area Development Scheme (MPLADS) Portal</p>
+            <p class="text-gray-400">MPLADS Engine Node • Verified Official Access</p>
+        </div>
+    </footer>
+
+    <!-- INTERACTIVE JAVASCRIPT ENGINE -->
+    <script>
+        const districtProjectsMap = {{ district_projects_json|safe }};
+
+        function openDistrictProjectsModal(districtName, statusType) {
+            const container = document.getElementById('modalCardsContainer');
+            const badge = document.getElementById('modalCategoryBadge');
+            const distTitle = document.getElementById('modalDistrictTitle');
+            const typeTitle = document.getElementById('modalTypeTitle');
+
+            distTitle.innerText = districtName;
+            container.innerHTML = '';
+
+            const distData = districtProjectsMap[districtName] || {};
+            const projects = distData[statusType] || [];
+
+            if (statusType === 'completed') {
+                badge.innerText = "Completed & Delivered";
+                typeTitle.innerText = "Delivered Public Assets";
+            } else if (statusType === 'not_completed') {
+                badge.innerText = "In Pipeline";
+                typeTitle.innerText = "Ongoing Execution Works";
+            }
+
+            if (projects.length === 0) {
+                container.innerHTML = `
+                    <div class="py-10 text-center text-gray-400 font-medium text-xs">
+                        No ${statusType.replace('_', ' ')} records found for district ${districtName}.
+                    </div>
+                `;
+            } else {
+                projects.forEach(p => {
+                    const card = document.createElement('div');
+                    card.className = "bg-white border border-gray-200 hover:border-blue-300 rounded-xl p-4 shadow-sm flex flex-col justify-between space-y-2 transition-colors";
+                    
+                    let statusTag = '';
+                    if (statusType === 'completed') {
+                        statusTag = `<span class="text-[10px] text-emerald-800 font-bold bg-emerald-50 px-2.5 py-0.5 rounded border border-emerald-300">✓ Audited & Delivered</span>`;
+                    } else if (statusType === 'not_completed') {
+                        statusTag = `<span class="text-[10px] text-amber-900 font-bold bg-amber-50 px-2.5 py-0.5 rounded border border-amber-300">⏳ In Execution</span>`;
+                    }
+
+                    card.innerHTML = `
+                        <div class="flex flex-col sm:flex-row justify-between sm:items-start gap-1">
+                            <div>
+                                <span class="font-mono text-[10px] font-bold text-blue-900 bg-blue-50 px-2 py-0.5 rounded border border-blue-200 uppercase">${p.id}</span>
+                                <h4 class="font-bold text-gray-900 text-sm mt-1">${p.title}</h4>
+                                <span class="text-xs text-gray-500">Implementing Agency: <strong class="text-gray-700">${p.agency}</strong></span>
+                            </div>
+                            <div class="text-left sm:text-right self-start sm:self-auto mt-1 sm:mt-0">
+                                <span class="font-mono font-extrabold text-sm text-gray-900 block">${p.cost}</span>
+                                ${statusTag}
+                            </div>
+                        </div>
+                        <div class="bg-gray-50 border border-gray-100 p-2.5 rounded-lg text-xs text-gray-700 font-medium">
+                            ${p.summary}
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            }
+
+            document.getElementById('districtProjectsModal').classList.remove('hidden');
+        }
+
+        function closeDistrictModal() {
+            document.getElementById('districtProjectsModal').classList.add('hidden');
+        }
+
+        function loadMpNotifications() {
+            let defaultNotifs = [
+                {
+                    id: 'NOTIF-101',
+                    title: 'AS/FS Issued for Drinking Water Scheme',
+                    time: '2 hours ago',
+                    detail: 'District Collector Bundi granted statutory Administrative & Financial Sanction for Work #BN-CMP-102 (₹8.50 L).',
+                },
+                {
+                    id: 'NOTIF-102',
+                    title: 'Tranche 2 Disbursed: High School Digital Lab',
+                    time: 'Yesterday',
+                    detail: 'Treasury release of ₹9.25 L processed by Kota District Engineering Division for Ladpura Block.',
+                },
+                {
+                    id: 'NOTIF-103',
+                    title: 'Statutory Utilization Notice',
+                    time: '3 days ago',
+                    detail: 'Quarterly expenditure report compiled for Hon\'ble MP Rajasthan allocation pool.',
+                }
+            ];
+
+            let userNotifs = JSON.parse(localStorage.getItem('mp_notifications') || 'null');
+            if (!userNotifs) {
+                userNotifs = defaultNotifs;
+                localStorage.setItem('mp_notifications', JSON.stringify(userNotifs));
+            }
+
+            const badge = document.getElementById('mpNotifBadge');
+            badge.innerText = userNotifs.length;
+            if (userNotifs.length === 0) {
+                badge.classList.add('hidden');
+            } else {
+                badge.classList.remove('hidden');
+            }
+
+            const container = document.getElementById('mpNotifList');
+            container.innerHTML = '';
+
+            if (userNotifs.length === 0) {
+                container.innerHTML = `
+                    <div class="py-10 text-center text-gray-400 font-medium text-xs">
+                        No notifications in the official dispatch register.
+                    </div>
+                `;
+            } else {
+                userNotifs.forEach((n) => {
+                    const item = document.createElement('div');
+                    item.className = "bg-gray-50 border border-gray-200 hover:border-blue-300 rounded-xl p-3.5 shadow-sm transition-colors flex flex-col space-y-1";
+                    item.innerHTML = `
+                        <div class="flex items-center justify-between">
+                            <span class="font-mono text-[10px] font-bold text-blue-900 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded">${n.id}</span>
+                            <span class="text-[10px] text-gray-500 font-semibold">${n.time}</span>
+                        </div>
+                        <h4 class="font-bold text-gray-900 text-sm">${n.title}</h4>
+                        <p class="text-xs text-gray-600 leading-relaxed">${n.detail}</p>
+                    `;
+                    container.appendChild(item);
+                });
+            }
+        }
+
+        function openMpNotifModal() {
+            loadMpNotifications();
+            document.getElementById('mpNotifModal').classList.remove('hidden');
+        }
+
+        function closeMpNotifModal() {
+            document.getElementById('mpNotifModal').classList.add('hidden');
+        }
+
+        function clearMpNotifications() {
+            localStorage.setItem('mp_notifications', JSON.stringify([]));
+            loadMpNotifications();
+        }
+
+        window.addEventListener('DOMContentLoaded', loadMpNotifications);
+
+        window.onclick = function(event) {
+            const distModal = document.getElementById('districtProjectsModal');
+            const notifModal = document.getElementById('mpNotifModal');
+            if (event.target === distModal) closeDistrictModal();
+            if (event.target === notifModal) closeMpNotifModal();
+        };
+    </script>
+
+</body>
+</html>

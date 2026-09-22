@@ -1,0 +1,92 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title }} - District {{ district_name }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col justify-between antialiased">
+    <div class="h-1.5 w-full bg-gradient-to-r from-amber-500 via-white to-emerald-600"></div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-1 flex flex-col space-y-5">
+        <div>
+            <a href="{% url 'mp_dashboard' %}" class="inline-flex items-center space-x-1.5 text-xs font-bold text-indigo-900 hover:text-indigo-700 bg-white border border-slate-300 px-3.5 py-2 rounded-xl shadow-xs transition-colors">
+                <span>← Back to MP Constituency Oversight</span>
+            </a>
+        </div>
+
+        <div class="bg-white border-2 border-slate-300 rounded-2xl p-5 shadow-md flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+            <div>
+                <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md
+                    {% if status_type == 'completed' %} bg-emerald-50 text-emerald-800 border border-emerald-200
+                    {% elif status_type == 'not_completed' %} bg-amber-50 text-amber-800 border border-amber-200
+                    {% else %} bg-rose-50 text-rose-800 border border-rose-200 {% endif %}">
+                    {{ page_title }}
+                </span>
+                <h1 class="text-xl md:text-2xl font-extrabold text-slate-900 mt-1">
+                    District: <span class="uppercase">{{ district_name }}</span>
+                </h1>
+            </div>
+            <div class="rounded-xl px-4 py-2 border-2 text-center
+                {% if status_type == 'completed' %} bg-emerald-50 border-emerald-300 text-emerald-900
+                {% elif status_type == 'not_completed' %} bg-amber-50 border-amber-300 text-amber-900
+                {% else %} bg-rose-50 border-rose-300 text-rose-900 {% endif %}">
+                <span class="text-[10px] uppercase font-bold block tracking-wider">Total Works</span>
+                <span class="font-mono text-2xl font-black">{{ total_count }}</span>
+            </div>
+        </div>
+
+        <div class="bg-white border-2 border-slate-300 rounded-2xl shadow-md overflow-hidden flex-1">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50 border-b-2 border-slate-300 text-[11px] font-bold uppercase tracking-wider text-slate-700">
+                            <th class="py-3.5 px-4 text-center w-12">S.No</th>
+                            <th class="py-3.5 px-5">Project Name & ID</th>
+                            <th class="py-3.5 px-4">Category</th>
+                            <th class="py-3.5 px-4 text-right">Sanctioned Outlay</th>
+                            <th class="py-3.5 px-4">Implementing Agency</th>
+                            <th class="py-3.5 px-4 text-center">Status</th>
+                            <th class="py-3.5 px-5">Remarks / Summary</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200 text-sm">
+                        {% for p in projects %}
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="py-4 px-4 text-center font-mono font-bold text-xs text-slate-500">{{ forloop.counter }}</td>
+                            <td class="py-4 px-5">
+                                <span class="font-mono text-xs font-bold text-slate-500 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded">{{ p.id }}</span>
+                                <div class="font-bold text-slate-900 mt-1">{{ p.title }}</div>
+                            </td>
+                            <td class="py-4 px-4 text-xs font-semibold text-slate-600">{{ p.category }}</td>
+                            <td class="py-4 px-4 text-right font-mono font-bold text-slate-900 text-sm">{{ p.sanctioned_amount }}</td>
+                            <td class="py-4 px-4 text-xs text-slate-700 font-medium">{{ p.agency }}</td>
+                            <td class="py-4 px-4 text-center">
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold
+                                    {% if p.badge_color == 'emerald' %} bg-emerald-50 text-emerald-800 border border-emerald-300
+                                    {% elif p.badge_color == 'amber' %} bg-amber-50 text-amber-800 border border-amber-300
+                                    {% else %} bg-rose-50 text-rose-800 border border-rose-300 {% endif %}">
+                                    {{ p.status_badge }}
+                                </span>
+                            </td>
+                            <td class="py-4 px-5 text-xs text-slate-600 max-w-xs">{{ p.summary }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="py-12 text-center text-slate-400 font-medium text-sm">No records available for this status filter.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

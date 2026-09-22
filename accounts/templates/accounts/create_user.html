@@ -1,291 +1,421 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Provision User Account — MPLADS Command Portal</title>
+    <title>Provision Official — MPLADS Administrative Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root {
-            /* Secure Executive Theme Palette */
-            --glass-bg: rgba(15, 23, 42, 0.75);
-            --glass-border: rgba(148, 163, 184, 0.15);
-            --accent-blue: #38bdf8;
-            --accent-navy: #1e293b;
-            --accent-steel: #64748b;
-            --accent-gold: #eab308;
-            --accent-emerald: #10b981;
-            --accent-rose: #f43f5e;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
+        .password-help-box ul {
+            list-style-type: disc;
+            margin-left: 1rem;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 2px 10px;
         }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-        }
-
-        body {
-            background-color: #0b0f19;
-            color: var(--text-main);
-            padding: 32px 20px;
-            margin: 0;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-            overflow-x: hidden;
-        }
-
-        /* Ambient Glass Background Orbs */
-        .orb {
-            position: fixed;
-            border-radius: 50%;
-            filter: blur(120px);
-            z-index: 0;
-            opacity: 0.35;
-            pointer-events: none;
-            animation: float 14s infinite alternate ease-in-out;
-        }
-
-        .orb-1 {
-            width: 450px;
-            height: 450px;
-            background: linear-gradient(135deg, #0284c7, #1e293b);
-            top: -80px;
-            left: -80px;
-        }
-
-        .orb-2 {
-            width: 550px;
-            height: 550px;
-            background: linear-gradient(135deg, #334155, #0f172a);
-            bottom: -120px;
-            right: -120px;
-            animation-delay: -7s;
-        }
-
-        @keyframes float {
-            0% { transform: translate(0, 0) scale(1); }
-            100% { transform: translate(30px, -20px) scale(1.05); }
-        }
-
-        .main-wrapper {
-            width: 100%;
-            max-width: 540px;
-            position: relative;
-            z-index: 10;
-        }
-
-        /* Frosted Glass Form Card */
-        .card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            padding: 36px 32px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8),
-                        0 0 30px rgba(56, 189, 248, 0.08);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; height: 2px;
-            background: linear-gradient(90deg, transparent, #38bdf8, #eab308, transparent);
-        }
-
-        .back-link {
-            color: var(--accent-blue);
-            text-decoration: none;
-            font-size: 13px;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            margin-bottom: 20px;
-            font-weight: 700;
-            transition: color 0.2s;
-        }
-
-        .back-link:hover {
-            color: #7dd3fc;
-            text-decoration: underline;
-        }
-
-        h2 {
-            margin-top: 0;
-            color: #f8fafc;
-            font-size: 20px;
-            font-weight: 800;
-            border-bottom: 1px solid var(--glass-border);
-            padding-bottom: 16px;
-            margin-bottom: 24px;
-            letter-spacing: 0.5px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        /* Form Field Styling for Django {{ form.as_p }} */
-        form p {
-            margin-bottom: 20px;
-            position: relative;
-        }
-
-        form label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 12px;
-            color: var(--text-muted);
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        input[type="text"], 
-        input[type="password"], 
-        input[type="email"], 
-        select, 
-        textarea {
-            width: 100%; 
-            padding: 12px 42px 12px 14px; 
-            background: rgba(15, 23, 42, 0.8); 
-            border: 1px solid var(--glass-border); 
-            border-radius: 10px; 
-            color: var(--text-main); 
-            box-sizing: border-box; 
-            font-size: 13px;
-            outline: none;
-            transition: all 0.25s ease;
-        }
-
-        input:focus, select:focus, textarea:focus {
-            border-color: var(--accent-blue);
-            background: rgba(15, 23, 42, 0.95);
-            box-shadow: 0 0 16px rgba(56, 189, 248, 0.25);
-        }
-
-        /* Eye Toggle Button Styling */
-        .pwd-wrapper { position: relative; display: block; }
-        .toggle-pwd-btn {
-            position: absolute;
-            right: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            cursor: pointer;
-            font-size: 15px;
-            padding: 2px;
-            user-select: none;
-            transition: color 0.2s, transform 0.2s;
-        }
-        
-        .toggle-pwd-btn:hover {
-            color: var(--accent-blue);
-            transform: translateY(-50%) scale(1.1);
-        }
-
-        /* Help Text & Validation Styling */
-        .helptext {
-            font-size: 11px;
-            color: var(--text-muted);
-            margin-top: 6px;
-            display: block;
-            line-height: 1.4;
-        }
-        
-        ul.helptext { margin: 6px 0 0 16px; padding: 0; }
-        
-        .errorlist {
-            color: var(--accent-rose);
-            font-size: 12px;
-            list-style: none;
-            padding: 8px 12px;
-            margin: 8px 0 0 0;
-            background: rgba(244, 63, 94, 0.1);
-            border: 1px solid rgba(244, 63, 94, 0.3);
-            border-radius: 6px;
-        }
-
-        .btn-submit { 
-            width: 100%;
-            padding: 13px 20px; 
-            background: linear-gradient(135deg, #0284c7, #0369a1); 
-            color: white; 
-            border: 1px solid rgba(56, 189, 248, 0.3); 
-            border-radius: 10px; 
-            cursor: pointer; 
-            font-weight: 700; 
-            font-size: 14px;
-            margin-top: 10px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(2, 132, 199, 0.25);
-        }
-        
-        .btn-submit:hover {
-            background: linear-gradient(135deg, #0369a1, #075985);
-            box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
-            transform: translateY(-1px);
+        .password-help-box li {
+            font-size: 10px;
+            color: #64748b;
+            line-height: 1.3;
         }
     </style>
 </head>
-<body>
+<body class="bg-gray-100 text-gray-800 min-h-screen flex flex-col justify-between antialiased">
 
-    <!-- Ambient Background Orbs -->
-    <div class="orb orb-1"></div>
-    <div class="orb orb-2"></div>
+    <!-- Top Tricolor Accent Bar -->
+    <div class="h-1.5 w-full bg-gradient-to-r from-orange-500 via-white to-green-600"></div>
 
-    <div class="main-wrapper">
-        <div class="card">
-            <a href="{% url 'admin_dashboard' %}" class="back-link">&larr; Back to Executive Dashboard</a>
-            <h2>👤 Provision User Account</h2>
-            <form method="POST" id="userForm">
-                {% csrf_token %}
-                {{ form.as_p }}
-                <button type="submit" class="btn-submit">Save & Provision Account</button>
-            </form>
+    <!-- Main Container in 1:3 Horizontal Grid -->
+    <div class="max-w-7xl mx-auto px-6 pt-3 pb-8 w-full flex-1 flex flex-col justify-center">
+        
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-5 items-stretch">
+
+            <!-- LEFT BOX (1 Ratio): Identity, Scope & Authority Info Panel -->
+            <div class="lg:col-span-1 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm border-t-4 border-t-blue-900 flex flex-col justify-between">
+                <div>
+                    <!-- Logo Box -->
+                    <div class="inline-flex bg-gray-50 p-2.5 rounded-2xl border border-gray-200 shadow-inner mb-4">
+                        <img src="{% static 'projects/images/mpladlogo.png' %}" 
+                             alt="MPLADS Logo" 
+                             style="width: 56px; height: 56px; max-width: 56px; max-height: 56px; object-fit: contain;" 
+                             class="w-14 h-14 object-contain">
+                    </div>
+
+                    <!-- Authority Badges -->
+                    <div class="mb-2">
+                        <span class="text-[10px] font-semibold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-0.5 rounded">
+                            Government of India
+                        </span>
+                    </div>
+                    <span class="text-[11px] font-medium text-gray-500 block mb-2 leading-tight">
+                        Ministry of Statistics & Programme Implementation
+                    </span>
+
+                    <h1 class="text-xl font-black text-blue-950 tracking-tight mt-1 leading-snug">
+                        Official Onboarding Panel
+                    </h1>
+                    <p class="text-xs text-gray-600 mt-2 leading-relaxed">
+                        Provision strictly designated administrative credentials across the four-tier hierarchy: MoSPI Apex, State Nodal, MP, or District Authority.
+                    </p>
+
+                    <!-- Guideline Bullet Notes -->
+                    <div class="mt-6 pt-4 border-t border-gray-100 space-y-2.5 text-xs text-gray-600">
+                        <div class="flex items-start space-x-2">
+                            <span class="text-blue-900 font-bold text-sm leading-none">•</span>
+                            <p class="text-[11px] leading-tight">
+                                <strong class="text-blue-950">RBAC Enforcement:</strong> Role-based clearances apply immediately upon registration.
+                            </p>
+                        </div>
+                        <div class="flex items-start space-x-2">
+                            <span class="text-blue-900 font-bold text-sm leading-none">•</span>
+                            <p class="text-[11px] leading-tight">
+                                <strong class="text-blue-950">Audit Logging:</strong> Account creation timestamp and provisioner ID are permanently stored.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 pt-4 border-t border-gray-100">
+                    <a href="{% url 'mospi_dashboard' %}" 
+                       class="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 text-xs font-bold rounded-xl border border-gray-300 shadow-xs transition-colors">
+                        ← Back to Command Center
+                    </a>
+                </div>
+            </div>
+
+            <!-- RIGHT BOX (3 Ratio): Full User Account Creation Form -->
+            <div class="lg:col-span-3 bg-white border border-gray-200 rounded-2xl p-6 sm:p-7 shadow-sm border-l-4 border-l-blue-600 flex flex-col justify-between">
+                
+                <form method="POST" id="userProvisionForm" class="space-y-4">
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                        <div class="bg-red-50 border border-red-200 text-red-700 p-3 rounded-xl text-xs flex items-start space-x-2">
+                            <svg class="w-4 h-4 text-red-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span>{{ form.non_field_errors }}</span>
+                        </div>
+                    {% endif %}
+
+                    <!-- Hidden inputs to submit custom MP fields -->
+                    <input type="hidden" name="state" id="hiddenStateInput" value="{{ form.state.value|default:'' }}">
+                    <input type="hidden" name="is_nominated_mp" id="hiddenNominatedInput" value="{% if form.is_nominated_mp.value %}true{% else %}false{% endif %}">
+
+                    <!-- SECTION 1: ACCOUNT CREDENTIALS -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div class="space-y-1">
+                            <label class="block text-[11px] font-bold uppercase tracking-wider text-blue-950">
+                                {% if form.user_id %}{{ form.user_id.label }}{% else %}Official User ID{% endif %}
+                            </label>
+                            {% if form.user_id %}
+                                {{ form.user_id }}
+                                {% if form.user_id.errors %}<p class="text-[10px] text-red-600 font-semibold">{{ form.user_id.errors.0 }}</p>{% endif %}
+                            {% else %}
+                                <input type="text" name="user_id" placeholder="e.g. ADM-001, MP-012" class="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-xs text-gray-900 focus:ring-2 focus:ring-blue-900 focus:outline-none shadow-xs">
+                            {% endif %}
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="block text-[11px] font-bold uppercase tracking-wider text-blue-950">
+                                {{ form.username.label|default:"Username" }}
+                            </label>
+                            {{ form.username }}
+                            {% if form.username.errors %}<p class="text-[10px] text-red-600 font-semibold">{{ form.username.errors.0 }}</p>{% endif %}
+                        </div>
+                    </div>
+
+                    <!-- SECTION 2: PERSONAL IDENTITY (SIDE BY SIDE) -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div class="space-y-1">
+                            <label class="block text-[11px] font-bold uppercase tracking-wider text-blue-950">
+                                {{ form.first_name.label|default:"First Name" }}
+                            </label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}<p class="text-[10px] text-red-600 font-semibold">{{ form.first_name.errors.0 }}</p>{% endif %}
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="block text-[11px] font-bold uppercase tracking-wider text-blue-950">
+                                {{ form.last_name.label|default:"Last Name" }}
+                            </label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}<p class="text-[10px] text-red-600 font-semibold">{{ form.last_name.errors.0 }}</p>{% endif %}
+                        </div>
+                    </div>
+
+                    <!-- SECTION 3: OFFICIAL CONTACT & ROLE (SIDE BY SIDE) -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div class="space-y-1">
+                            <label class="block text-[11px] font-bold uppercase tracking-wider text-blue-950">
+                                {{ form.email.label|default:"Official Email Address" }}
+                            </label>
+                            {{ form.email }}
+                            {% if form.email.errors %}<p class="text-[10px] text-red-600 font-semibold">{{ form.email.errors.0 }}</p>{% endif %}
+                        </div>
+
+                        <div class="space-y-1">
+                            <label class="block text-[11px] font-bold uppercase tracking-wider text-blue-950">
+                                {{ form.role.label|default:"Hierarchy Designation" }}
+                            </label>
+                            {{ form.role }}
+                            {% if form.role.errors %}<p class="text-[10px] text-red-600 font-semibold">{{ form.role.errors.0 }}</p>{% endif %}
+                        </div>
+                    </div>
+
+                    <!-- SECTION 4: CASCADING JURISDICTION -->
+                    <div class="space-y-3 bg-gray-50 p-3.5 rounded-xl border border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <label class="block text-[11px] font-bold uppercase tracking-wider text-blue-950">
+                                Assigned Jurisdiction & Representation Scope
+                            </label>
+                            <span id="roleBadgeHelp" class="text-[10px] font-mono font-bold bg-blue-50 text-blue-900 border border-blue-200 px-2 py-0.5 rounded"></span>
+                        </div>
+
+                        <!-- Nominated MP Toggle -->
+                        <div id="nominatedContainer" class="p-2.5 bg-white border border-gray-200 rounded-xl hidden">
+                            <label class="inline-flex items-center space-x-2 cursor-pointer">
+                                <input type="checkbox" id="nominatedMpCheckbox" class="w-3.5 h-3.5 text-blue-900 border-gray-300 rounded focus:ring-blue-900">
+                                <span class="text-xs font-bold text-gray-800">Nominated Member of Parliament (Pan-India Jurisdiction)</span>
+                            </label>
+                            <p class="text-[10px] text-gray-500 mt-0.5 pl-5">
+                                Pan-India statutory scope across all states and Union Territories without territorial restrictions.
+                            </p>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <!-- State / UT Selector -->
+                            <div id="stateContainer">
+                                <label class="block text-[10px] font-semibold text-gray-600 mb-1">State / Union Territory</label>
+                                <select id="stateSelect" class="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-xs text-gray-900 focus:ring-2 focus:ring-blue-900 focus:outline-none shadow-xs">
+                                    <option value="">-- Select State / UT --</option>
+                                    <option value="Rajasthan">Rajasthan</option>
+                                    <option value="Gujarat">Gujarat</option>
+                                    <option value="Maharashtra">Maharashtra</option>
+                                    <option value="Uttar Pradesh">Uttar Pradesh</option>
+                                    <option value="Haryana">Haryana</option>
+                                    <option value="Delhi">Delhi</option>
+                                    <option value="Madhya Pradesh">Madhya Pradesh</option>
+                                    <option value="Bihar">Bihar</option>
+                                </select>
+                            </div>
+
+                            <!-- District Selector -->
+                            <div id="districtContainer">
+                                <label class="block text-[10px] font-semibold text-gray-600 mb-1">District Collectorate</label>
+                                <div style="display:none;">
+                                    {{ form.jurisdiction }}
+                                </div>
+                                <select id="districtSelect" disabled class="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-xs text-gray-900 focus:ring-2 focus:ring-blue-900 focus:outline-none disabled:bg-gray-100 disabled:text-gray-400 shadow-xs">
+                                    <option value="">-- Select State First --</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <p id="jurisdictionHelpText" class="text-[10px] text-blue-900 font-medium">
+                            ℹ️ Configured according to MPLADS statutory role guidelines.
+                        </p>
+                    </div>
+
+                    <!-- SECTION 5: PASSWORD FIELDS (SIDE-BY-SIDE + MICRO-CRITERIA) -->
+                    <div class="pt-2 border-t border-gray-100">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                            <!-- Password 1 -->
+                            <div class="space-y-1">
+                                <label class="block text-[11px] font-bold uppercase tracking-wider text-blue-950">
+                                    {% if form.password1 %}{{ form.password1.label }}{% elif form.password %}{{ form.password.label }}{% else %}Password{% endif %}
+                                </label>
+                                {% if form.password1 %}
+                                    {{ form.password1 }}
+                                    {% if form.password1.errors %}<p class="text-[10px] text-red-600 font-semibold">{{ form.password1.errors.0 }}</p>{% endif %}
+                                {% elif form.password %}
+                                    {{ form.password }}
+                                    {% if form.password.errors %}<p class="text-[10px] text-red-600 font-semibold">{{ form.password.errors.0 }}</p>{% endif %}
+                                {% else %}
+                                    <input type="password" name="password" required placeholder="••••••••" class="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-xs text-gray-900 focus:ring-2 focus:ring-blue-900 focus:outline-none shadow-xs">
+                                {% endif %}
+                            </div>
+
+                            <!-- Password 2 (Confirm) -->
+                            <div class="space-y-1">
+                                <label class="block text-[11px] font-bold uppercase tracking-wider text-blue-950">
+                                    {% if form.password2 %}{{ form.password2.label }}{% elif form.password_confirm %}{{ form.password_confirm.label }}{% else %}Password Confirmation{% endif %}
+                                </label>
+                                {% if form.password2 %}
+                                    {{ form.password2 }}
+                                    {% if form.password2.errors %}<p class="text-[10px] text-red-600 font-semibold">{{ form.password2.errors.0 }}</p>{% endif %}
+                                {% elif form.password_confirm %}
+                                    {{ form.password_confirm }}
+                                    {% if form.password_confirm.errors %}<p class="text-[10px] text-red-600 font-semibold">{{ form.password_confirm.errors.0 }}</p>{% endif %}
+                                {% else %}
+                                    <input type="password" name="password_confirm" required placeholder="••••••••" class="w-full bg-white border border-gray-300 rounded-xl px-3 py-2 text-xs text-gray-900 focus:ring-2 focus:ring-blue-900 focus:outline-none shadow-xs">
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Compact Micro-font Password Instructions Box -->
+                        <div class="mt-2.5 p-2 bg-gray-50 border border-gray-200 rounded-xl password-help-box">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-gray-600 block mb-1">
+                                Password Benchmark Criteria:
+                            </span>
+                            <ul>
+                                <li>Minimum 8 characters length</li>
+                                <li>Cannot be similar to personal details</li>
+                                <li>Cannot be a common password</li>
+                                <li>Must not be entirely numeric characters</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- ACTION BUTTONS -->
+                    <div class="pt-3 border-t border-gray-100 flex items-center justify-end space-x-2.5">
+                        <a href="{% url 'mospi_dashboard' %}" class="px-4 py-2 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-100 transition-colors">
+                            Cancel
+                        </a>
+                        <button type="submit" class="bg-blue-900 hover:bg-blue-800 text-white px-6 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm active:scale-[0.99] cursor-pointer">
+                            Provision & Register Official →
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+
         </div>
+
     </div>
 
+    <!-- Official Portal Footer -->
+    <footer class="bg-blue-950 text-gray-300 py-3.5 px-6 border-t border-blue-900 text-xs text-center">
+        <p>Member of Parliament Local Area Development Scheme (MPLADS) Portal — Secure Onboarding Module</p>
+    </footer>
+
+    <!-- Interactive Dropdown & Field Normalization Script -->
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // Find all password input fields dynamically generated by Django
-            const pwdInputs = document.querySelectorAll('input[type="password"]');
+    document.querySelectorAll('input:not([type="checkbox"]):not([type="hidden"]), select:not(#stateSelect):not(#districtSelect)').forEach(el => {
+        el.classList.add(
+            'w-full', 'bg-white', 'border', 'border-gray-300', 'rounded-xl', 
+            'px-3', 'py-2', 'text-xs', 'text-gray-900', 'focus:ring-2', 
+            'focus:ring-blue-900', 'focus:outline-none', 'shadow-xs'
+        );
+    });
 
-            pwdInputs.forEach(input => {
-                // Create container wrapper
-                const wrapper = document.createElement('div');
-                wrapper.className = 'pwd-wrapper';
-                input.parentNode.insertBefore(wrapper, input);
-                wrapper.appendChild(input);
+    document.addEventListener('DOMContentLoaded', function() {
+        const roleSelect = document.querySelector('select[name="role"]');
+        const originalJurisdictionSelect = document.querySelector('select[name="jurisdiction"]');
+        
+        const stateContainer = document.getElementById('stateContainer');
+        const districtContainer = document.getElementById('districtContainer');
+        const nominatedContainer = document.getElementById('nominatedContainer');
+        
+        const stateSelect = document.getElementById('stateSelect');
+        const districtSelect = document.getElementById('districtSelect');
+        const nominatedCheckbox = document.getElementById('nominatedMpCheckbox');
 
-                // Create eye toggle button
-                const toggleBtn = document.createElement('button');
-                toggleBtn.type = 'button';
-                toggleBtn.className = 'toggle-pwd-btn';
-                toggleBtn.innerHTML = '👁️';
-                toggleBtn.title = 'Show/Hide Password';
-                wrapper.appendChild(toggleBtn);
+        const hiddenStateInput = document.getElementById('hiddenStateInput');
+        const hiddenNominatedInput = document.getElementById('hiddenNominatedInput');
+        const helpText = document.getElementById('jurisdictionHelpText');
+        const roleBadge = document.getElementById('roleBadgeHelp');
 
-                // Toggle visibility event
-                toggleBtn.addEventListener('click', function () {
-                    if (input.type === 'password') {
-                        input.type = 'text';
-                        toggleBtn.innerHTML = '🙈';
-                    } else {
-                        input.type = 'password';
-                        toggleBtn.innerHTML = '👁️';
+        const stateDistrictMapping = {
+            "Rajasthan": ["Ajmer", "Bikaner", "Jaipur", "Jodhpur", "Kota", "Udaipur", "Bundi", "Tonk"],
+            "Gujarat": ["Ahmedabad", "Rajkot", "Surat", "Vadodara"],
+            "Maharashtra": ["Mumbai Suburban", "Nagpur", "Nashik", "Pune", "Hingoli"],
+            "Haryana": ["Gurugram", "Faridabad", "Ambala", "Karnal", "Panipat"],
+            "Uttar Pradesh": ["Lucknow", "Kanpur", "Varanasi", "Agra", "Noida"],
+            "Delhi": ["Central Delhi", "New Delhi", "North Delhi", "South Delhi"],
+            "Madhya Pradesh": ["Bhopal", "Indore", "Gwalior", "Jabalpur"],
+            "Bihar": ["Patna", "Gaya", "Aurangabad_BR", "Muzaffarpur"]
+        };
+
+        // Populate state select values
+        stateSelect.innerHTML = '<option value="">-- Select State / UT --</option>';
+        Object.keys(stateDistrictMapping).sort().forEach(st => {
+            const opt = document.createElement('option');
+            opt.value = st;
+            opt.textContent = st;
+            if (hiddenStateInput.value === st) opt.selected = true;
+            stateSelect.appendChild(opt);
+        });
+
+        function syncRoleUI() {
+            const role = roleSelect ? roleSelect.value : 'MP';
+            roleBadge.textContent = `Role: ${role}`;
+
+            if (role === 'MP') {
+                districtContainer.style.display = 'none';
+                nominatedContainer.classList.remove('hidden');
+
+                if (nominatedCheckbox.checked) {
+                    stateContainer.style.display = 'none';
+                    hiddenNominatedInput.value = 'true';
+                    hiddenStateInput.value = '';
+                    helpText.textContent = "✓ Nominated MP has Pan-India representation without territorial state restriction.";
+                } else {
+                    stateContainer.style.display = 'block';
+                    hiddenNominatedInput.value = 'false';
+                    helpText.textContent = "✓ Member of Parliament is scoped to their elected State. District selection is omitted.";
+                }
+            } else if (role === 'DISTRICT_AUTHORITY') {
+                districtContainer.style.display = 'block';
+                stateContainer.style.display = 'block';
+                nominatedContainer.classList.add('hidden');
+                hiddenNominatedInput.value = 'false';
+                helpText.textContent = "✓ District Authority accounts require both State and District Collectorate selection.";
+            } else if (role === 'STATE_NODAL') {
+                districtContainer.style.display = 'none';
+                stateContainer.style.display = 'block';
+                nominatedContainer.classList.add('hidden');
+                hiddenNominatedInput.value = 'false';
+                helpText.textContent = "✓ State Nodal Authority is assigned oversight over their entire State.";
+            } else {
+                districtContainer.style.display = 'none';
+                stateContainer.style.display = 'none';
+                nominatedContainer.classList.add('hidden');
+                hiddenNominatedInput.value = 'false';
+                helpText.textContent = "✓ MoSPI Apex Admins have central national access.";
+            }
+        }
+
+        if (roleSelect) {
+            roleSelect.addEventListener('change', syncRoleUI);
+        }
+
+        nominatedCheckbox.addEventListener('change', function() {
+            hiddenNominatedInput.value = this.checked ? 'true' : 'false';
+            syncRoleUI();
+        });
+
+        stateSelect.addEventListener('change', function() {
+            const st = this.value;
+            hiddenStateInput.value = st;
+            districtSelect.innerHTML = '<option value="">-- Select District / Collectorate --</option>';
+
+            if (st && stateDistrictMapping[st]) {
+                districtSelect.disabled = false;
+                stateDistrictMapping[st].forEach(dist => {
+                    const opt = document.createElement('option');
+                    opt.value = dist;
+                    opt.textContent = dist;
+                    districtSelect.appendChild(opt);
+                });
+            } else {
+                districtSelect.disabled = true;
+            }
+        });
+
+        districtSelect.addEventListener('change', function() {
+            if (originalJurisdictionSelect) {
+                Array.from(originalJurisdictionSelect.options).forEach(opt => {
+                    if (opt.text.trim().toLowerCase() === this.value.trim().toLowerCase()) {
+                        originalJurisdictionSelect.value = opt.value;
                     }
                 });
-            });
+            }
         });
+
+        syncRoleUI();
+    });
     </script>
 </body>
 </html>

@@ -1,307 +1,97 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>User Rights & Access Control — MPLADS Command Portal</title>
-    <style>
-        :root {
-            /* Secure Executive Theme Palette */
-            --glass-bg: rgba(15, 23, 42, 0.75);
-            --glass-border: rgba(148, 163, 184, 0.15);
-            --accent-blue: #38bdf8;
-            --accent-navy: #1e293b;
-            --accent-steel: #64748b;
-            --accent-gold: #eab308;
-            --accent-emerald: #10b981;
-            --accent-rose: #f43f5e;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-        }
-
-        body {
-            background-color: #0b0f19;
-            color: var(--text-main);
-            padding: 32px;
-            margin: 0;
-            min-height: 100vh;
-            position: relative;
-            overflow-x: hidden;
-        }
-
-        /* Ambient Glass Background Orbs */
-        .orb {
-            position: fixed;
-            border-radius: 50%;
-            filter: blur(120px);
-            z-index: 0;
-            opacity: 0.35;
-            pointer-events: none;
-            animation: float 14s infinite alternate ease-in-out;
-        }
-
-        .orb-1 {
-            width: 450px;
-            height: 450px;
-            background: linear-gradient(135deg, #0284c7, #1e293b);
-            top: -80px;
-            left: -80px;
-        }
-
-        .orb-2 {
-            width: 550px;
-            height: 550px;
-            background: linear-gradient(135deg, #334155, #0f172a);
-            bottom: -120px;
-            right: -120px;
-            animation-delay: -7s;
-        }
-
-        @keyframes float {
-            0% { transform: translate(0, 0) scale(1); }
-            100% { transform: translate(30px, -20px) scale(1.05); }
-        }
-
-        .main-container {
-            position: relative;
-            z-index: 10;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        /* Glass Header */
-        .header {
-            background: var(--glass-bg);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            padding: 20px 28px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 28px;
-            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .header::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; height: 2px;
-            background: linear-gradient(90deg, transparent, #38bdf8, #eab308, transparent);
-        }
-
-        .back-link {
-            color: var(--accent-blue);
-            text-decoration: none;
-            font-size: 13px;
-            font-weight: 700;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            transition: color 0.2s;
-        }
-
-        .back-link:hover {
-            color: #7dd3fc;
-            text-decoration: underline;
-        }
-
-        .header h1 {
-            margin: 8px 0 0 0;
-            font-size: 20px;
-            font-weight: 800;
-            letter-spacing: 0.5px;
-            color: #f8fafc;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .btn-create-user {
-            background: linear-gradient(135deg, #0284c7, #0369a1);
-            color: white;
-            padding: 10px 18px;
-            text-decoration: none;
-            border-radius: 8px;
-            font-weight: 700;
-            font-size: 13px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(2, 132, 199, 0.25);
-            border: 1px solid rgba(56, 189, 248, 0.3);
-        }
-
-        .btn-create-user:hover {
-            box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
-            transform: translateY(-1px);
-        }
-
-        /* Frosted Glass Table */
-        table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            background: var(--glass-bg);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid var(--glass-border);
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
-        }
-
-        th, td {
-            padding: 14px 18px;
-            text-align: left;
-            font-size: 13px;
-            border-bottom: 1px solid var(--glass-border);
-        }
-
-        th {
-            background: rgba(15, 23, 42, 0.85);
-            color: var(--text-muted);
-            font-weight: 700;
-            text-transform: uppercase;
-            font-size: 11px;
-            letter-spacing: 0.8px;
-        }
-
-        tbody tr {
-            transition: background 0.2s ease;
-        }
-
-        tbody tr:hover {
-            background: rgba(56, 189, 248, 0.04);
-        }
-
-        tbody tr:last-child td {
-            border-bottom: none;
-        }
-
-        /* User ID Tag */
-        .user-id-code {
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-            font-size: 12px;
-            color: var(--accent-blue);
-            background: rgba(56, 189, 248, 0.1);
-            border: 1px solid rgba(56, 189, 248, 0.25);
-            padding: 3px 8px;
-            border-radius: 6px;
-            font-weight: 700;
-        }
-
-        /* Action Buttons */
-        .btn-edit {
-            background: linear-gradient(135deg, #0284c7, #0369a1);
-            color: white;
-            padding: 6px 14px;
-            border-radius: 6px;
-            text-decoration: none;
-            font-size: 12px;
-            font-weight: 700;
-            margin-right: 6px;
-            display: inline-block;
-            transition: all 0.25s ease;
-            box-shadow: 0 2px 8px rgba(2, 132, 199, 0.2);
-            border: 1px solid rgba(56, 189, 248, 0.3);
-        }
-
-        .btn-edit:hover {
-            box-shadow: 0 0 14px rgba(56, 189, 248, 0.4);
-            transform: translateY(-1px);
-        }
-
-        .btn-del {
-            background: rgba(244, 63, 94, 0.15);
-            color: var(--accent-rose);
-            border: 1px solid rgba(244, 63, 94, 0.4);
-            padding: 6px 14px;
-            border-radius: 6px;
-            font-size: 12px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.25s ease;
-        }
-
-        .btn-del:hover {
-            background: rgba(244, 63, 94, 0.3);
-            box-shadow: 0 0 14px rgba(244, 63, 94, 0.3);
-            transform: translateY(-1px);
-        }
-
-        .self-tag {
-            color: var(--accent-gold);
-            font-style: italic;
-            font-size: 12px;
-            font-weight: 700;
-            margin-left: 6px;
-        }
-    </style>
+    <title>Manage Hierarchy Users - MPLADS Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
+<body class="bg-gray-100 text-gray-800 min-h-screen flex flex-col justify-between">
 
-    <!-- Ambient Background Orbs -->
-    <div class="orb orb-1"></div>
-    <div class="orb orb-2"></div>
+    <!-- Top Tricolor Accent Bar -->
+    <div class="h-1.5 w-full bg-gradient-to-r from-orange-500 via-white to-green-600"></div>
 
-    <div class="main-container">
-
+    <div class="max-w-7xl mx-auto px-6 py-10 w-full flex-1">
+        
         <!-- Header -->
-        <div class="header">
+        <div class="bg-blue-950 text-white border border-blue-900 rounded-2xl p-6 shadow-lg mb-8 flex justify-between items-center">
             <div>
-                <a href="{% url 'admin_dashboard' %}" class="back-link">&larr; Back to Executive Dashboard</a>
-                <h1>👥 User Directory & Rights Control</h1>
+                <span class="text-xs font-semibold uppercase tracking-wider bg-amber-500 text-blue-950 px-2.5 py-0.5 rounded shadow-sm">
+                    Apex Hierarchy Directory
+                </span>
+                <h1 class="text-2xl font-extrabold mt-1 tracking-tight">System Users & Officials</h1>
+                <p class="text-xs text-blue-200">Monitor and audit all active accounts across MoSPI, State, MP, and District levels</p>
             </div>
-            <a href="{% url 'create_user' %}" class="btn-create-user">+ Provision New User</a>
+            <div class="flex items-center gap-3">
+                <a href="{% url 'create_user' %}" class="bg-amber-500 hover:bg-amber-600 text-blue-950 px-4 py-2.5 rounded-xl text-xs font-bold transition-colors shadow-sm">
+                    + Provision New Official
+                </a>
+                <a href="{% url 'mospi_dashboard' %}" class="bg-white/10 hover:bg-white/20 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-colors border border-blue-800">
+                    ← Dashboard
+                </a>
+            </div>
         </div>
 
-        <!-- Directory Table -->
-        <table>
-            <thead>
-                <tr>
-                    <th>User ID</th>
-                    <th>Username</th>
-                    <th>Full Name</th>
-                    <th>Role</th>
-                    <th>Jurisdiction</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for u in users %}
-                <tr>
-                    <td><span class="user-id-code">ADM-{{ u.id|stringformat:"03d" }}</span></td>
-                    <td><strong>{{ u.username }}</strong></td>
-                    <td>{{ u.get_full_name|default:"--" }}</td>
-                    <td>{{ u.get_role_display }}</td>
-                    <td>{{ u.jurisdiction.name|default:"Global Scope" }}</td>
-                    <td>
-                        <a href="{% url 'edit_user' u.id %}" class="btn-edit">Edit</a>
-                        
-                        {% if u != request.user %}
-                            <form action="{% url 'delete_user' u.id %}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to revoke access and delete user {{ u.username }}?');">
-                                {% csrf_token %}
-                                <button type="submit" class="btn-del">Delete</button>
-                            </form>
-                        {% else %}
-                            <span class="self-tag">(You)</span>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <!-- Users Table Card -->
+        <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+            <div class="p-5 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+                <span class="text-xs font-bold uppercase tracking-wider text-blue-900">Registered Accounts ({{ all_users.count }})</span>
+                <span class="text-[11px] text-gray-500">Showing full administrative roster</span>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="bg-gray-100 text-gray-600 uppercase tracking-wider text-[10px] border-b border-gray-200">
+                            <th class="p-4">User ID / Username</th>
+                            <th class="p-4">Full Name</th>
+                            <th class="p-4">Role Tier</th>
+                            <th class="p-4">Jurisdiction</th>
+                            <th class="p-4">Status</th>
+                            <th class="p-4">Date Joined</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        {% for u in all_users %}
+                            <tr class="hover:bg-gray-50/80">
+                                <td class="p-4 font-bold text-blue-950">
+                                    {{ u.user_id|default:"N/A" }} <br>
+                                    <span class="text-[10px] font-normal text-gray-400">@{{ u.username }}</span>
+                                </td>
+                                <td class="p-4 font-semibold text-gray-800">{{ u.get_full_name|default:"Not Provided" }}</td>
+                                <td class="p-4">
+                                    <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase 
+                                        {% if u.role == 'MOSPI_ADMIN' %} bg-blue-100 text-blue-900 border border-blue-200
+                                        {% elif u.role == 'STATE_NODAL' %} bg-indigo-100 text-indigo-900 border border-indigo-200
+                                        {% elif u.role == 'MP' %} bg-emerald-100 text-emerald-900 border border-emerald-200
+                                        {% else %} bg-amber-100 text-amber-900 border border-amber-200 {% endif %}">
+                                        {{ u.get_role_display }}
+                                    </span>
+                                </td>
+                                <td class="p-4 text-gray-600">{{ u.jurisdiction.name|default:"Pan-India / Unassigned" }}</td>
+                                <td class="p-4">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold 
+                                        {% if u.status == 'ACTIVE' %} bg-green-100 text-green-800 {% else %} bg-red-100 text-red-800 {% endif %}">
+                                        {{ u.get_status_display|default:"Active" }}
+                                    </span>
+                                </td>
+                                <td class="p-4 text-gray-400 text-[11px]">{{ u.date_joined|date:"d M Y" }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="6" class="p-8 text-center text-gray-400">No users found in the registry.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
     </div>
 
+    <!-- Footer -->
+    <footer class="bg-blue-950 text-gray-300 py-4 px-8 mt-6 border-t border-blue-900 text-xs text-center">
+        <p>Member of Parliament Local Area Development Scheme (MPLADS) Portal — User Management Directory</p>
+    </footer>
 </body>
 </html>

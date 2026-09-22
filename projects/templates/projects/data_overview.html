@@ -1,0 +1,509 @@
+{% load static %}
+{% load project_extras %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>MPLADS Government Portal - Centralized Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-100 text-gray-800 min-h-screen flex flex-col justify-between">
+
+    <!-- Top Tricolor Accent Bar -->
+    <div class="h-1.5 w-full bg-gradient-to-r from-orange-500 via-white to-green-600"></div>
+
+    <div class="max-w-7xl mx-auto px-6 py-8 w-full flex-1 flex flex-col">
+        
+        <!-- Official Header Bar -->
+        <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center space-x-5">
+                <div class="bg-gray-50 p-2 rounded-xl border border-gray-200 shadow-inner">
+                    <img src="{% static 'projects/images/mpladlogo.png' %}" alt="MPLADS Logo" class="w-16 h-16 object-contain">
+                </div>
+                
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs font-semibold uppercase tracking-wider bg-blue-50 text-blue-700 border border-blue-200 px-2.5 py-0.5 rounded">
+                            Government of India
+                        </span>
+                        <span class="text-xs font-medium text-gray-500">Ministry of Statistics and Programme Implementation</span>
+                    </div>
+                    <h1 class="text-2xl md:text-3xl font-extrabold text-blue-950 mt-1 tracking-tight">MPLADS Data Management Portal</h1>
+                    <p class="text-xs md:text-sm text-gray-600">Centralized National Database & Interactive Records Inspector</p>
+                </div>
+            </div>
+            
+            <!-- Authentication & System Status Section -->
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-900 text-white px-5 py-3 rounded-xl text-sm font-medium shadow-sm flex flex-col items-center md:items-end">
+                    <span class="text-xs text-blue-200 uppercase tracking-wide">System Status</span>
+                    <span>Active Modules: <strong class="text-amber-400 font-bold">{{ table_stats|length }} Tables</strong></span>
+                </div>
+
+                <!-- Auth Action Button -->
+                {% if request.user.is_authenticated %}
+                    <div class="flex flex-col gap-1.5">
+                        <a href="{% url 'workspace_redirect' %}" 
+   class="bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-colors shadow-sm text-center">
+    My Workspace →
+</a>
+                        <a href="{% url 'logout' %}" class="text-center text-xs text-red-600 hover:underline font-semibold">
+                            Logout
+                        </a>
+                    </div>
+                {% else %}
+                    <a href="{% url 'login' %}" class="bg-amber-600 hover:bg-amber-700 text-white px-5 py-3 rounded-xl text-xs font-bold transition-colors shadow-sm flex items-center space-x-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+                        </svg>
+                        <span>Official Login</span>
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- National Scheme Performance Overview (Top 5 KPI Boxes) -->
+        <div class="mb-8">
+            <div class="mb-4 flex items-center justify-between">
+                <h2 class="text-base font-bold text-gray-900 border-l-4 border-amber-500 pl-3 uppercase tracking-wider">National Scheme Performance Overview</h2>
+                <span class="text-xs text-gray-500">Aggregated from live database parameters</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                <!-- Recommended -->
+                <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm border-l-4 border-l-blue-600 flex flex-col justify-between">
+                    <div>
+                        <p class="text-[11px] font-bold uppercase tracking-wider text-gray-500">Total Recommended</p>
+                        <p class="text-2xl font-black text-blue-950 mt-1">{{ metrics.total_recommended|floatformat:"0" }}</p>
+                    </div>
+                    <span class="text-[10px] text-gray-400 mt-3 block">Works proposed across constituencies</span>
+                </div>
+
+                <!-- Approved -->
+                <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm border-l-4 border-l-indigo-600 flex flex-col justify-between">
+                    <div>
+                        <p class="text-[11px] font-bold uppercase tracking-wider text-gray-500">Projects Approved</p>
+                        <p class="text-2xl font-black text-indigo-950 mt-1">{{ metrics.total_sanctioned|floatformat:"0" }}</p>
+                    </div>
+                    <span class="text-[10px] text-gray-400 mt-3 block">Sanctioned for execution</span>
+                </div>
+
+                <!-- Completed -->
+                <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm border-l-4 border-l-emerald-600 flex flex-col justify-between">
+                    <div>
+                        <p class="text-[11px] font-bold uppercase tracking-wider text-gray-500">Projects Completed</p>
+                        <p class="text-2xl font-black text-emerald-950 mt-1">{{ metrics.total_completed|floatformat:"0" }}</p>
+                    </div>
+                    <span class="text-[10px] text-gray-400 mt-3 block">Successfully delivered works</span>
+                </div>
+
+                <!-- Completion Status Bar -->
+                <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm border-l-4 border-l-teal-600 flex flex-col justify-between">
+                    <div>
+                        <div class="flex justify-between items-baseline">
+                            <p class="text-[11px] font-bold uppercase tracking-wider text-gray-500">Completion Status</p>
+                            <span class="text-sm font-black text-teal-800">{{ metrics.completion_percentage }}%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
+                            <div class="bg-teal-600 h-2 rounded-full" style="width: {{ metrics.completion_percentage }}%"></div>
+                        </div>
+                    </div>
+                    <span class="text-[10px] text-gray-400 mt-3 block">Ratio of finished vs approved</span>
+                </div>
+
+                <!-- Expenditure -->
+                <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm border-l-4 border-l-amber-500 flex flex-col justify-between">
+                    <div>
+                        <p class="text-[11px] font-bold uppercase tracking-wider text-gray-500">Total Expenditure</p>
+                        <p class="text-lg font-black text-amber-900 mt-1 truncate" title="₹{{ metrics.total_expenditure }}">₹{{ metrics.total_expenditure|floatformat:"0" }}</p>
+                    </div>
+                    <span class="text-[10px] text-gray-400 mt-3 block">Cumulative funds utilized</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- CENTRALIZED DATA EXPLORER SECTION -->
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm flex-1 flex flex-col overflow-hidden mb-6">
+            
+            <!-- Explorer Toolbar / Dropdown Header -->
+            <div class="bg-gray-50 border-b border-gray-200 px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div class="flex items-center space-x-3 w-full sm:w-auto">
+                    <span class="text-xs font-bold uppercase tracking-wider text-blue-900 bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-lg">
+                        Database Explorer
+                    </span>
+                    <form method="GET" action="" id="tableSelectForm" class="flex items-center space-x-2">
+                        <label for="tableSelect" class="text-xs font-semibold text-gray-600 hidden sm:inline">Select Module:</label>
+                        <select name="table" id="tableSelect" onchange="this.form.submit()" 
+                                class="bg-white border border-gray-300 text-blue-950 font-bold text-sm rounded-xl px-4 py-2 focus:ring-2 focus:ring-blue-900 focus:outline-none shadow-sm cursor-pointer">
+                            {% for stat in table_stats %}
+                                <option value="{{ stat.table_name }}" {% if current_table == stat.table_name %}selected{% endif %}>
+                                    {{ stat.display_name }} ({{ stat.record_count }} records)
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                </div>
+                <form method="GET" action="" class="flex items-center space-x-2">
+                    <input type="hidden" name="table" value="{{ current_table }}">
+                    <div class="relative">
+                        <input type="text" name="q" value="{{ search_query }}" placeholder="Search state, constituency, keyword..." 
+                               class="bg-white border border-gray-300 text-gray-800 text-xs rounded-xl px-3.5 py-2 pl-8 focus:ring-2 focus:ring-blue-900 focus:outline-none shadow-sm w-64 md:w-80">
+                        <svg class="w-4 h-4 text-gray-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </div>
+                    <button type="submit" class="bg-blue-900 hover:bg-blue-800 text-white text-xs font-semibold px-4 py-2 rounded-xl transition-colors shadow-sm">
+                        Search
+                    </button>
+                    {% if search_query %}
+                        <a href="?table={{ current_table }}" class="bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs font-semibold px-3 py-2 rounded-xl transition-colors" title="Clear Search">
+                            ✕
+                        </a>
+                    {% endif %}
+                </form>
+            </div>
+
+            <!-- Table Container -->
+            <div class="overflow-auto flex-1 max-h-[550px]">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-blue-950 text-white text-xs uppercase tracking-wider sticky top-0 border-b border-blue-900">
+                            {% for col in columns %}
+                                <th class="p-4 font-semibold tracking-wide whitespace-nowrap">{{ col }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200 text-sm">
+                        {% for row in records %}
+                            <tr onclick="openRecordModal({{ forloop.counter0 }})" class="hover:bg-blue-50/80 transition-colors cursor-pointer" title="Click to view full project details">
+                                {% for col in columns %}
+                                    <td class="p-4 text-gray-700 whitespace-nowrap max-w-xs truncate">{{ row|get_item:col }}</td>
+                                {% endfor %}
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="{{ columns|length }}" class="text-center py-12 text-gray-500">
+                                    No records found in this dataset view.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Set Navigation Footer -->
+            <div class="bg-gray-50 px-8 py-4 border-t border-gray-200 flex items-center justify-between">
+                <span class="text-xs text-gray-600 font-semibold uppercase tracking-wider">
+                    Viewing Dataset: <strong class="text-blue-950 font-mono">{{ current_table }}</strong> (Total Records: {{ total_records }})
+                </span>
+                <div class="space-x-3">
+                    {% if has_prev %}
+                        <a href="?table={{ current_table }}&offset={{ prev_offset }}{% if search_query %}&q={{ search_query }}{% endif %}" class="px-4 py-2 bg-white hover:bg-gray-100 border border-gray-300 rounded-xl text-sm font-semibold text-gray-700 transition-colors shadow-sm">
+                            ← Previous Set
+                        </a>
+                    {% endif %}
+                    {% if has_next %}
+                        <a href="?table={{ current_table }}&offset={{ next_offset }}{% if search_query %}&q={{ search_query }}{% endif %}" class="px-4 py-2 bg-blue-900 hover:bg-blue-800 rounded-xl text-sm font-semibold text-white transition-colors shadow-sm">
+                            Next Set (51 records) →
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+
+        </div>
+
+        <!-- VISUAL ANALYTICS & INSIGHTS COMMAND CENTER (3-Column Grid) -->
+        <div class="mt-2 mb-6">
+            <div class="mb-4 flex items-center justify-between">
+                <h2 class="text-base font-bold text-gray-900 border-l-4 border-indigo-600 pl-3 uppercase tracking-wider">Visual Analytics & Scheme Insights</h2>
+                <span class="text-xs text-gray-500">Graphical distribution of active module parameters</span>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Chart 1: Funnel -->
+                <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-sm font-bold text-blue-950 uppercase tracking-wider">Conversion Funnel</h3>
+                        <span class="text-xs bg-blue-50 text-blue-800 px-2.5 py-1 rounded-md font-semibold">Macro Pipeline</span>
+                    </div>
+                    <div class="relative h-64 flex items-center justify-center">
+                        <canvas id="lifecycleFunnelChart"></canvas>
+                    </div>
+                    <p class="text-[11px] text-gray-400 mt-4 text-center">Progression volume from recommendation to completion.</p>
+                </div>
+
+                <!-- Chart 2: State-Wise -->
+                <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-sm font-bold text-blue-950 uppercase tracking-wider">State Density</h3>
+                        <span class="text-xs bg-amber-50 text-amber-800 px-2.5 py-1 rounded-md font-semibold">Regional</span>
+                    </div>
+                    <div class="relative h-64 flex items-center justify-center">
+                        <canvas id="stateDistributionChart"></canvas>
+                    </div>
+                    <p class="text-[11px] text-gray-400 mt-4 text-center">Concentration across leading administrative states.</p>
+                </div>
+
+                <!-- Chart 3: Trends -->
+                <div class="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm flex flex-col justify-between">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-sm font-bold text-blue-950 uppercase tracking-wider">Approvals vs Expenditure</h3>
+                        <span class="text-xs bg-emerald-50 text-emerald-800 px-2.5 py-1 rounded-md font-semibold">Temporal</span>
+                    </div>
+                    <div class="relative h-64 flex items-center justify-center">
+                        <canvas id="trendLineChart"></canvas>
+                    </div>
+                    <p class="text-[11px] text-gray-400 mt-4 text-center">Monthly fiscal flow and approval velocity across financial year.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- MASTER PROJECTS INTELLIGENCE DIRECTORY -->
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm flex flex-col overflow-hidden mb-6 mt-6">
+            <div class="bg-gray-50 border-b border-gray-200 px-6 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div class="flex items-center space-x-3">
+                    <span class="text-xs font-bold uppercase tracking-wider text-indigo-900 bg-indigo-50 border border-indigo-200 px-3 py-1.5 rounded-lg">
+                        Master Projects Directory
+                    </span>
+                    <span class="text-xs text-gray-500">Calculated sophisticated registry of national works | Click any project name for deep-dive diagnostics</span>
+                </div>
+                <div class="text-xs font-semibold text-gray-600 bg-white border border-gray-200 px-3 py-1.5 rounded-xl shadow-sm">
+                    Total Tracked: <span class="text-indigo-950 font-bold">{{ master_projects|length }} Active Works</span>
+                </div>
+            </div>
+
+            <!-- Table Container -->
+            <div class="overflow-auto max-h-[450px]">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-indigo-950 text-white text-xs uppercase tracking-wider sticky top-0 border-b border-indigo-900">
+                            <th class="p-4 font-semibold tracking-wide">Project ID</th>
+                            <th class="p-4 font-semibold tracking-wide">Project Name</th>
+                            <th class="p-4 font-semibold tracking-wide">Member of Parliament</th>
+                            <th class="p-4 font-semibold tracking-wide w-48">Calculated Progress</th>
+                            <th class="p-4 font-semibold tracking-wide text-right">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200 text-sm">
+                        {% for p in master_projects %}
+                            <tr class="hover:bg-indigo-50/50 transition-colors">
+                                <td class="p-4 font-mono text-xs font-bold text-blue-900 whitespace-nowrap">
+                                    {{ p.project_id }}
+                                </td>
+                                <td class="p-4 font-semibold text-gray-900">
+                                    <a href="{% url 'projects:project_detail' p.project_id %}" class="hover:text-indigo-600 hover:underline flex items-center space-x-1">
+                                        <span>{{ p.project_name }}</span>
+                                        <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                                        </svg>
+                                    </a>
+                                </td>
+                                <td class="p-4 text-gray-600 text-xs font-medium whitespace-nowrap">
+                                    {{ p.member_of_parliament }}
+                                </td>
+                                <td class="p-4 align-middle">
+                                    <div class="flex items-center space-x-2">
+                                        <div class="flex-1 bg-gray-200 rounded-full h-2">
+                                            <div class="bg-indigo-600 h-2 rounded-full" style="width: {{ p.progress }}%;"></div>
+                                        </div>
+                                        <span class="text-xs font-bold text-indigo-950 w-9 text-right">{{ p.progress }}%</span>
+                                    </div>
+                                </td>
+                                <td class="p-4 text-right whitespace-nowrap">
+                                    <a href="{% url 'projects:project_detail' p.project_id %}" class="inline-flex items-center px-3 py-1 bg-indigo-50 hover:bg-indigo-100 text-indigo-800 text-xs font-semibold rounded-lg transition-colors">
+                                        Inspect →
+                                    </a>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-10 text-gray-400 text-sm">
+                                    No master project registries available.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- RECORD DETAIL POPUP MODAL -->
+    <div id="recordModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 md:p-8">
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-150">
+            
+            <div class="bg-blue-950 text-white px-6 py-4 flex items-center justify-between border-b border-blue-900">
+                <div class="flex items-center space-x-3">
+                    <span class="bg-blue-900 text-amber-400 text-xs px-2.5 py-1 rounded font-mono uppercase tracking-wider">Record Inspector</span>
+                    <h3 class="text-lg font-bold">Complete Project Details</h3>
+                </div>
+                <button onclick="closeRecordModal()" class="text-gray-400 hover:text-white bg-blue-900/50 hover:bg-blue-900 p-2 rounded-xl transition-colors">
+                    ✕
+                </button>
+            </div>
+
+            <div class="flex-1 overflow-auto p-6 space-y-4" id="modalRecordContent">
+                <!-- Injected via JS -->
+            </div>
+
+            <div class="bg-gray-50 px-6 py-3 border-t border-gray-200 flex justify-end">
+                <button onclick="closeRecordModal()" class="px-5 py-2 bg-blue-900 hover:bg-blue-800 text-white rounded-xl text-sm font-semibold transition-colors shadow-sm">Close Window</button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Official Footer -->
+    <footer class="bg-blue-950 text-gray-300 py-4 px-8 mt-6 border-t border-blue-900 text-xs">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-2">
+            <p>Member of Parliament Local Area Development Scheme (MPLADS) Portal</p>
+            <p class="text-gray-400">Government Data Introspection Module</p>
+        </div>
+    </footer>
+
+    <!-- POPUP MODAL & CHART SCRIPTS -->
+    <script>
+        const recordsData = {{ records_json|safe }};
+
+        function openRecordModal(index) {
+            const record = recordsData[index];
+            if (!record) return;
+
+            const container = document.getElementById('modalRecordContent');
+            container.innerHTML = '';
+
+            for (const [key, value] of Object.entries(record)) {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = "grid grid-cols-1 md:grid-cols-3 gap-2 pb-3 border-b border-gray-100 text-sm";
+                
+                const label = document.createElement('div');
+                label.className = "font-semibold text-gray-500 uppercase text-xs tracking-wider font-mono self-center";
+                label.innerText = key;
+
+                const val = document.createElement('div');
+                val.className = "md:col-span-2 text-gray-900 font-medium break-words bg-gray-50 p-2.5 rounded-lg border border-gray-100";
+                val.innerText = (value !== null && value !== undefined && value !== "") ? value : "—";
+
+                rowDiv.appendChild(label);
+                rowDiv.appendChild(val);
+                container.appendChild(rowDiv);
+            }
+
+            document.getElementById('recordModal').classList.remove('hidden');
+        }
+
+        function closeRecordModal() {
+            document.getElementById('recordModal').classList.add('hidden');
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('recordModal');
+            if (event.target === modal) {
+                closeRecordModal();
+            }
+        }
+
+        // 1. Lifecycle Funnel Chart Initialization
+        const funnelCtx = document.getElementById('lifecycleFunnelChart').getContext('2d');
+        new Chart(funnelCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Recommended', 'Approved / Sanctioned', 'Completed'],
+                datasets: [{
+                    label: 'Project Volume',
+                    data: [{{ metrics.total_recommended }}, {{ metrics.total_sanctioned }}, {{ metrics.total_completed }}],
+                    backgroundColor: ['#1e3a8a', '#4338ca', '#059669'],
+                    borderRadius: 8,
+                    barThickness: 36,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: '#f3f4f6' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        // 2. State-Wise Distribution Chart Initialization
+        const stateLabels = {{ state_labels_json|safe }};
+        const stateCounts = {{ state_counts_json|safe }};
+
+        const stateCtx = document.getElementById('stateDistributionChart').getContext('2d');
+        new Chart(stateCtx, {
+            type: 'bar',
+            data: {
+                labels: stateLabels,
+                datasets: [{
+                    label: 'Records Count',
+                    data: stateCounts,
+                    backgroundColor: '#d97706',
+                    borderRadius: 6,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: '#f3f4f6' } },
+                    x: { grid: { display: false }, ticks: { font: { size: 10 } } }
+                }
+            }
+        });
+
+        // 3. Multi-Line Trend Chart Initialization
+        const trendCtx = document.getElementById('trendLineChart').getContext('2d');
+        new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: {{ trend_labels_json|safe }},
+                datasets: [
+                    {
+                        label: 'approvals',
+                        data: {{ trend_app_json|safe }},
+                        borderColor: '#3b82f6',
+                        backgroundColor: '#3b82f6',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        pointRadius: 3
+                    },
+                    {
+                        label: 'expenditure',
+                        data: {{ trend_exp_json|safe }},
+                        borderColor: '#10b981',
+                        backgroundColor: '#10b981',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        pointRadius: 3
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { boxWidth: 12, font: { size: 11 } }
+                    }
+                },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: '#f3f4f6' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    </script>
+
+</body>
+</html>

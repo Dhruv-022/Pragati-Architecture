@@ -1,0 +1,382 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flagged Alert Projects — District {{ district_name }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col justify-between antialiased">
+
+    <!-- Top Tricolor Accent Line -->
+    <div class="h-1.5 w-full bg-gradient-to-r from-amber-500 via-white to-emerald-600"></div>
+
+    <!-- Floating Confirmation Toast Banner -->
+    <div id="toastNotification" class="fixed top-6 right-6 z-60 hidden max-w-md bg-emerald-950 text-white border-2 border-emerald-400 p-4 rounded-2xl shadow-2xl animate-in slide-in-from-top-4 duration-200">
+        <div class="flex items-start space-x-3">
+            <div class="bg-emerald-500 text-emerald-950 p-1.5 rounded-lg mt-0.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                </svg>
+            </div>
+            <div>
+                <h4 class="text-xs font-black uppercase tracking-wider text-emerald-300">Statutory Notice Dispatched</h4>
+                <p id="toastMessage" class="text-xs text-slate-200 mt-0.5 leading-relaxed"></p>
+                <span class="text-[10px] text-emerald-400 block mt-1 font-mono">Logged to Hon'ble MP Notification Center</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full flex-1 flex flex-col space-y-6">
+
+        <!-- Navigation Bar -->
+        <div class="flex items-center justify-between">
+            <a href="{% url 'mp_dashboard' %}" 
+               class="inline-flex items-center space-x-2 text-xs font-bold text-indigo-950 hover:text-indigo-700 bg-white border-2 border-slate-300 hover:border-slate-400 px-4 py-2 rounded-xl shadow-xs transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                </svg>
+                <span>Back to MP Overview</span>
+            </a>
+
+            <span class="text-xs font-semibold text-slate-500">
+                Representative: <strong class="text-slate-800 font-bold">{{ mp_name }}</strong>
+            </span>
+        </div>
+
+        <!-- Official Header Banner -->
+        <header class="bg-white border-2 border-slate-300 rounded-2xl p-5 shadow-md flex flex-col sm:flex-row justify-between sm:items-center gap-4">
+            <div class="flex items-center space-x-4">
+                <div class="bg-rose-950 text-white p-3 rounded-xl shadow-md flex items-center justify-center">
+                    <svg class="w-7 h-7 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <span class="text-[10px] font-bold uppercase tracking-wider bg-rose-50 text-rose-800 border border-rose-200 px-2.5 py-0.5 rounded-md">
+                            Priority Oversight
+                        </span>
+                        <span class="text-xs text-slate-500 font-medium">MPLADS Statutory Bottleneck Audit</span>
+                    </div>
+                    <h1 class="text-xl md:text-2xl font-extrabold text-slate-900 tracking-tight mt-0.5">
+                        District {{ district_name }} — Flagged Alert Projects
+                    </h1>
+                    <p class="text-xs text-slate-600 font-medium mt-0.5">
+                        Click on any project row below to inspect its detailed dossier, reason for flagging, and issue a direct inquiry directive.
+                    </p>
+                </div>
+            </div>
+
+            <div class="rounded-xl px-5 py-2.5 bg-rose-50 border-2 border-rose-200 text-center self-start sm:self-auto shadow-2xs">
+                <span class="text-[10px] uppercase font-bold text-rose-700 block tracking-wider">Critical Flags</span>
+                <span class="font-mono text-2xl font-black text-rose-900">{{ alerts_count }}</span>
+            </div>
+        </header>
+
+        <!-- Flagged Projects Table -->
+        <div class="bg-white border-2 border-slate-300 rounded-2xl shadow-md overflow-hidden flex flex-col">
+            <div class="px-6 py-3.5 bg-slate-50 border-b-2 border-slate-200 flex justify-between items-center">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-700">
+                    Flagged Projects Registry
+                </span>
+                <span class="text-[11px] text-slate-500">
+                    Showing {{ alerts_count }} projects requiring administrative intervention
+                </span>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-100 text-[11px] font-bold uppercase tracking-wider text-slate-700 border-b-2 border-slate-300">
+                            <th class="py-3.5 px-4 text-center w-14">S.No</th>
+                            <th class="py-3.5 px-5">Project Name & ID</th>
+                            <th class="py-3.5 px-4">Implementing Agency</th>
+                            <th class="py-3.5 px-4 text-right">Sanctioned Outlay</th>
+                            <th class="py-3.5 px-4 text-center">Delay Duration</th>
+                            <th class="py-3.5 px-6">Primary Issue Detected</th>
+                            <th class="py-3.5 px-4 text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-200 text-xs">
+                        {% for item in alerts_list %}
+                        <tr onclick="openAlertDetailsModal({{ forloop.counter0 }})" 
+                            class="hover:bg-rose-50/40 cursor-pointer transition-colors group">
+                            
+                            <td class="py-4 px-4 text-center font-mono font-bold text-slate-500">
+                                {{ forloop.counter }}
+                            </td>
+
+                            <td class="py-4 px-5">
+                                <span class="font-mono text-[10px] font-bold text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded block w-max mb-1">
+                                    {{ item.id }}
+                                </span>
+                                <h3 class="font-bold text-slate-900 group-hover:text-rose-900 text-sm transition-colors">
+                                    {{ item.title }}
+                                </h3>
+                                <span class="text-[11px] text-slate-500 font-medium">{{ item.category }}</span>
+                            </td>
+
+                            <td class="py-4 px-4 font-semibold text-slate-700">
+                                {{ item.agency }}
+                            </td>
+
+                            <td class="py-4 px-4 text-right font-mono font-bold text-slate-900 text-sm">
+                                {{ item.cost }}
+                            </td>
+
+                            <td class="py-4 px-4 text-center">
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-md font-bold text-[11px] bg-rose-50 text-rose-800 border border-rose-300">
+                                    +{{ item.days_delayed }} Days
+                                </span>
+                            </td>
+
+                            <td class="py-4 px-6 text-slate-800 font-semibold max-w-sm">
+                                <span class="bg-rose-50 border border-rose-200 p-2 rounded-lg block text-rose-950 font-bold text-[11px]">
+                                    ⚠ {{ item.issue }}
+                                </span>
+                            </td>
+
+                            <td class="py-4 px-4 text-center">
+                                <button type="button" 
+                                        class="px-3 py-1.5 bg-white group-hover:bg-rose-700 group-hover:text-white border-2 border-rose-300 group-hover:border-rose-700 text-rose-700 text-[11px] font-bold rounded-xl transition-all shadow-2xs">
+                                    View Dossier →
+                                </button>
+                            </td>
+
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="py-12 text-center text-slate-400 font-medium text-sm">
+                                No critical flagged alerts registered for District {{ district_name }}.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- INTERACTIVE PROJECT DOSSIER MODAL WITH TRANSMIT BUTTON -->
+    <!-- ======================================================== -->
+    <div id="projectDossierModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden flex items-center justify-center p-4 md:p-6">
+        <div class="bg-white rounded-2xl border-2 border-slate-300 shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in duration-150">
+            
+            <!-- Modal Header -->
+            <div class="bg-rose-950 text-white px-6 py-4 flex items-center justify-between border-b-2 border-slate-900">
+                <div class="flex items-center space-x-3">
+                    <span class="bg-rose-900 text-rose-200 text-xs px-2.5 py-1 rounded font-bold uppercase tracking-wider border border-rose-800">
+                        Audit Dossier
+                    </span>
+                    <h2 class="text-base sm:text-lg font-bold" id="m_id_title">
+                        Project Information & Alert Breakdown
+                    </h2>
+                </div>
+                <button onclick="closeAlertDetailsModal()" class="text-rose-200 hover:text-white p-2 rounded-xl transition-colors cursor-pointer text-base font-bold">
+                    ✕
+                </button>
+            </div>
+
+            <!-- Modal Content Body -->
+            <div class="flex-1 overflow-auto p-6 space-y-5 text-xs text-slate-700">
+                
+                <!-- Project Identity Box -->
+                <div class="bg-slate-50 border-2 border-slate-200 rounded-xl p-4">
+                    <span class="font-mono text-xs font-bold text-rose-700 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded uppercase" id="m_id"></span>
+                    <h3 class="text-base font-extrabold text-slate-900 mt-1.5" id="m_title"></h3>
+                    <p class="text-xs text-slate-500 font-medium mt-0.5" id="m_category"></p>
+                </div>
+
+                <!-- Financial & Operational Parameters -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div class="bg-white border-2 border-slate-200 p-3 rounded-xl">
+                        <span class="text-[10px] uppercase font-bold text-slate-500 block">Sanctioned Cost</span>
+                        <span class="font-mono text-sm font-bold text-slate-900" id="m_cost"></span>
+                    </div>
+                    <div class="bg-white border-2 border-slate-200 p-3 rounded-xl">
+                        <span class="text-[10px] uppercase font-bold text-slate-500 block">Disbursed So Far</span>
+                        <span class="font-mono text-sm font-bold text-indigo-900" id="m_disbursed"></span>
+                    </div>
+                    <div class="bg-white border-2 border-slate-200 p-3 rounded-xl">
+                        <span class="text-[10px] uppercase font-bold text-slate-500 block">Physical Progress</span>
+                        <span class="font-mono text-sm font-bold text-emerald-700" id="m_progress"></span>
+                    </div>
+                    <div class="bg-white border-2 border-slate-200 p-3 rounded-xl">
+                        <span class="text-[10px] uppercase font-bold text-rose-700 block">Delay Duration</span>
+                        <span class="font-mono text-sm font-bold text-rose-700" id="m_delay"></span>
+                    </div>
+                </div>
+
+                <!-- Key Entity Details -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="bg-white border border-slate-200 p-3.5 rounded-xl">
+                        <span class="text-[10px] uppercase font-bold text-slate-500 block mb-1">Implementing Agency (IDA)</span>
+                        <p class="font-bold text-slate-900 text-xs" id="m_agency"></p>
+                    </div>
+                    <div class="bg-white border border-slate-200 p-3.5 rounded-xl">
+                        <span class="text-[10px] uppercase font-bold text-slate-500 block mb-1">Supervising Official</span>
+                        <p class="font-bold text-slate-900 text-xs" id="m_officer"></p>
+                    </div>
+                </div>
+
+                <!-- Core Flagged Reason -->
+                <div class="bg-rose-50/70 border-2 border-rose-300 rounded-xl p-4 space-y-2">
+                    <div class="flex items-center space-x-2 text-rose-900 font-bold">
+                        <svg class="w-4 h-4 text-rose-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                        <span class="uppercase tracking-wider text-[11px]">Primary Reason for Flagging</span>
+                    </div>
+                    <p class="text-xs text-rose-950 font-semibold leading-relaxed" id="m_reason"></p>
+                </div>
+
+                <!-- Corrective Action Taken -->
+                <div class="bg-indigo-50/60 border-2 border-indigo-200 rounded-xl p-4 space-y-1.5">
+                    <span class="text-[10px] uppercase tracking-wider font-bold text-indigo-900 block">
+                        Collectorate Directive & Action Taken
+                    </span>
+                    <p class="text-xs text-slate-700 font-medium leading-relaxed" id="m_action"></p>
+                </div>
+
+            </div>
+
+            <!-- Modal Footer: Transmit Notice Button -->
+            <div class="bg-slate-50 px-6 py-4 border-t-2 border-slate-200 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
+                <button type="button" 
+                        id="btnSendDirective"
+                        onclick="sendAlertToDistrict()" 
+                        class="inline-flex items-center justify-center space-x-2 px-5 py-2.5 bg-rose-700 hover:bg-rose-800 active:scale-95 text-white rounded-xl font-bold text-xs shadow-md transition-all cursor-pointer">
+                    <svg class="w-4 h-4 text-rose-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                    <span id="btnSendText">Send Alert Notice to District Authority</span>
+                </button>
+
+                <button onclick="closeAlertDetailsModal()" 
+                        class="px-4 py-2.5 bg-white hover:bg-slate-100 text-slate-700 border-2 border-slate-300 rounded-xl font-bold text-xs transition-colors shadow-xs cursor-pointer">
+                    Close Dossier
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Official Portal Footer -->
+    <footer class="bg-white border-t-2 border-slate-300 py-3.5 px-6 text-xs text-slate-500 shadow-inner">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-2">
+            <p>© Government of India • Ministry of Statistics & Programme Implementation</p>
+            <p class="font-mono text-[11px] text-slate-500 font-semibold">District Collectorate Node • Statutory Execution & Inspection</p>
+        </div>
+    </footer>
+
+    <!-- Interactive JS Engine -->
+    <script>
+        const alertsData = {{ alerts_json|safe }};
+        let activeProject = null;
+
+        function openAlertDetailsModal(index) {
+            const project = alertsData[index];
+            if (!project) return;
+
+            activeProject = project;
+
+            document.getElementById('m_id').innerText = project.id;
+            document.getElementById('m_id_title').innerText = `${project.id} — Audit Dossier`;
+            document.getElementById('m_title').innerText = project.title;
+            document.getElementById('m_category').innerText = `Sector: ${project.category}`;
+            document.getElementById('m_cost').innerText = project.cost;
+            document.getElementById('m_disbursed').innerText = project.disbursed;
+            document.getElementById('m_progress').innerText = `${project.progress}%`;
+            document.getElementById('m_delay').innerText = `+${project.days_delayed} Days`;
+            document.getElementById('m_agency').innerText = project.agency;
+            document.getElementById('m_officer').innerText = project.officer_in_charge;
+            document.getElementById('m_reason').innerText = project.flagged_reason;
+            document.getElementById('m_action').innerText = project.action_taken;
+
+            // Reset action button state
+            const btn = document.getElementById('btnSendDirective');
+            const btnText = document.getElementById('btnSendText');
+
+            // Check if already dispatched in localStorage
+            let distAlerts = JSON.parse(localStorage.getItem('district_custom_alerts') || '[]');
+            if (distAlerts.some(a => a.id === project.id)) {
+                btn.className = "inline-flex items-center justify-center space-x-2 px-5 py-2.5 bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-md transition-all cursor-default";
+                btn.disabled = true;
+                btnText.innerHTML = `✓ Alert Notice Dispatched to District Collector`;
+            } else {
+                btn.className = "inline-flex items-center justify-center space-x-2 px-5 py-2.5 bg-rose-700 hover:bg-rose-800 active:scale-95 text-white rounded-xl font-bold text-xs shadow-md transition-all cursor-pointer";
+                btn.disabled = false;
+                btnText.innerText = `Send Alert Notice to District Authority`;
+            }
+
+            document.getElementById('projectDossierModal').classList.remove('hidden');
+        }
+
+        function closeAlertDetailsModal() {
+            document.getElementById('projectDossierModal').classList.add('hidden');
+        }
+
+        function sendAlertToDistrict() {
+            if (!activeProject) return;
+
+            const btn = document.getElementById('btnSendDirective');
+            const btnText = document.getElementById('btnSendText');
+
+            btn.className = "inline-flex items-center justify-center space-x-2 px-5 py-2.5 bg-emerald-700 text-white rounded-xl font-bold text-xs shadow-md transition-all cursor-default";
+            btn.disabled = true;
+            btnText.innerHTML = `✓ Alert Notice Dispatched to District Collector`;
+
+            // 1. Show confirmation toast
+            const toast = document.getElementById('toastNotification');
+            const msg = document.getElementById('toastMessage');
+            msg.innerText = `Directive for ${activeProject.id} (${activeProject.title}) transmitted to District Authority Command.`;
+            toast.classList.remove('hidden');
+
+            // 2. Add to District Panel's Flagged Alerts in localStorage
+            let distAlerts = JSON.parse(localStorage.getItem('district_custom_alerts') || '[]');
+            if (!distAlerts.some(a => a.id === activeProject.id)) {
+                distAlerts.unshift({
+                    id: activeProject.id,
+                    title: activeProject.title,
+                    reason: `DIRECTIVE FROM HON'BLE MP: ${activeProject.issue} (+${activeProject.days_delayed}d delay)`,
+                    location: '{{ district_name }} District'
+                });
+                localStorage.setItem('district_custom_alerts', JSON.stringify(distAlerts));
+            }
+
+            // 3. Add confirmation record to MP Notification Drawer
+            let mpNotifs = JSON.parse(localStorage.getItem('mp_notifications') || '[]');
+            mpNotifs.unshift({
+                id: activeProject.id,
+                title: `Directive Transmitted: ${activeProject.title}`,
+                time: 'Just now',
+                detail: `Statutory inquiry served to District Collectorate {{ district_name }}. Assigned to ${activeProject.agency}.`
+            });
+            localStorage.setItem('mp_notifications', JSON.stringify(mpNotifs));
+
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 5000);
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('projectDossierModal');
+            if (event.target === modal) {
+                closeAlertDetailsModal();
+            }
+        };
+    </script>
+
+</body>
+</html>

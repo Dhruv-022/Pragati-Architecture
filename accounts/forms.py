@@ -12,42 +12,44 @@ class DynamicUserCreationForm(UserCreationForm):
         current_user = kwargs.pop('logged_in_user', None)
         super().__init__(*args, **kwargs)
 
-        # Base Queryset: Only permit assigned Districts from the database
-        self.fields['jurisdiction'].queryset = Jurisdiction.objects.filter(
-            level=Jurisdiction.Level.DISTRICT
-        ).select_related('parent').order_by('parent__name', 'name')
+        # Base Queryset: Only permit Districts or relevant levels from the database
+        self.fields['jurisdiction'].queryset = Jurisdiction.objects.all().order_by('name')
 
         if current_user:
-            # 1. District Admin Flow
-            if current_user.is_district_admin:
-                # Restrict selectable roles
-                allowed_roles = [User.Role.MONITORING_OFFICER, User.Role.INVESTIGATOR]
+            # 1. MoSPI Admin Flow (Apex National Oversight)
+            if current_user.is_mospi_admin:
+                self.fields['role'].choices = User.Role.choices
+                self.fields['jurisdiction'].empty_label = "-- Select Jurisdiction (Optional for National) --"
+
+            # 2. State Nodal Authority Flow
+            elif current_user.is_state_nodal:
+                allowed_roles = [User.Role.MP, User.Role.DISTRICT_AUTHORITY]
                 self.fields['role'].choices = [
                     (k, v) for k, v in User.Role.choices if k in allowed_roles
                 ]
+                # Can scope jurisdictions within their state if needed
 
-                # Lock and enforce the District Admin's jurisdiction
+            # 3. District Authority Flow
+            elif current_user.is_district_authority:
+                allowed_roles = [User.Role.DISTRICT_AUTHORITY]
+                self.fields['role'].choices = [
+                    (k, v) for k, v in User.Role.choices if k in allowed_roles
+                ]
                 if current_user.jurisdiction:
                     self.fields['jurisdiction'].initial = current_user.jurisdiction
                     self.fields['jurisdiction'].disabled = True
                     self.fields['jurisdiction'].required = True
-
-            # 2. System Admin Flow
-            elif current_user.is_system_admin:
-                self.fields['role'].choices = User.Role.choices
-                self.fields['jurisdiction'].empty_label = "-- Select District Jurisdiction --"
 
     def clean(self):
         cleaned_data = super().clean()
         role = cleaned_data.get('role')
         jurisdiction = cleaned_data.get('jurisdiction')
 
-        # Rule validation: Any role other than SYSTEM_ADMIN MUST have a jurisdiction selected
-        if role and role != User.Role.SYSTEM_ADMIN and not jurisdiction:
-            # If disabled field was ignored by browser or not bound, check initial value
+        # Rule validation: District Authorities and MPs generally require a jurisdiction
+        if role in [User.Role.DISTRICT_AUTHORITY, User.Role.MP] and not jurisdiction:
             if self.fields['jurisdiction'].disabled and self.fields['jurisdiction'].initial:
                 cleaned_data['jurisdiction'] = self.fields['jurisdiction'].initial
             else:
-                self.add_error('jurisdiction', 'A valid District Jurisdiction must be assigned for this role.')
+                self.add_error('jurisdiction', 'A valid Jurisdiction must be assigned for this role.')
 
         return cleaned_data
