@@ -27,4 +27,5 @@ urlpatterns = [
     path('admin-panel/delete-user/<int:user_id>/', views.delete_user, name='delete_user'),
     path('mp/district/<str:district_name>/alerts/', views.mp_district_alerts_view, name='mp_district_alerts'),
     path('mp/district/<str:district_name>/works/<str:status_type>/', views.mp_district_works_view, name='mp_district_works'),
+    path('admin-panel/users/<int:user_id>/edit/', views.edit_official, name='edit_official'),
 ]

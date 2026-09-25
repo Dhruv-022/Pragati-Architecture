@@ -1,0 +1,132 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Official Profile — MPLADS e-Sakshi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>body { font-family: 'Inter', system-ui, sans-serif; }</style>
+</head>
+<body class="bg-[#f0f3f8] text-slate-800 min-h-screen flex flex-col justify-between antialiased">
+
+    <!-- Top Tricolor Accent Bar -->
+    <div class="h-1.5 w-full bg-gradient-to-r from-[#FF9933] via-white to-[#138808]"></div>
+
+    <!-- Masthead -->
+    <header class="bg-white border-b border-slate-200 shadow-xs">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/5/55/Emblem_of_India.svg" alt="Emblem of India" class="h-10 w-auto object-contain">
+                <div class="border-l border-slate-300 pl-3">
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-[#0b2545]">सांख्यिकी और कार्यक्रम कार्यान्वयन मंत्रालय</p>
+                    <p class="text-[11px] font-semibold text-slate-700 leading-tight">Ministry of Statistics & Programme Implementation</p>
+                </div>
+            </div>
+            <a href="{% url 'manage_users' %}" class="inline-flex items-center px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg border border-slate-300 transition-colors">
+                ← Back to User Roster
+            </a>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-4xl mx-auto px-4 py-8 w-full flex-1">
+        <div class="bg-white border border-slate-300 rounded-xl shadow-md overflow-hidden">
+            
+            <div class="bg-slate-50 px-6 py-4 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
+                <div>
+                    <h1 class="text-base sm:text-lg font-bold text-slate-900 tracking-tight">
+                        Modify Official Record
+                    </h1>
+                    <p class="text-xs text-slate-500 mt-0.5">
+                        Updating profile credentials for Official ID: <span class="font-mono font-bold text-blue-900">{{ official.user_id }}</span>
+                    </p>
+                </div>
+                <span class="text-[10px] font-mono font-semibold bg-blue-50 text-blue-800 border border-blue-200 px-2.5 py-1 rounded">
+                    ROLE: {{ official.get_role_display }}
+                </span>
+            </div>
+
+            <form method="POST" class="p-6 sm:p-8 space-y-5">
+                {% csrf_token %}
+
+                {% if form.errors %}
+                    <div class="bg-red-50 border-l-4 border-red-600 p-3.5 rounded-r-lg text-xs text-red-800">
+                        <p class="font-bold">Please correct the following errors:</p>
+                        <ul class="list-disc pl-5 mt-1 space-y-0.5">
+                            {% for field, errors in form.errors.items %}
+                                <li><strong>{{ field|title }}:</strong> {{ errors|striptags }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+
+                <!-- Read-only Security Banner -->
+                <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg flex flex-wrap gap-4 text-xs text-slate-600">
+                    <div><span class="text-slate-400 block text-[10px] font-bold uppercase">System Username</span> <strong class="text-slate-800">{{ official.username }}</strong></div>
+                    <div><span class="text-slate-400 block text-[10px] font-bold uppercase">User Code</span> <strong class="text-slate-800">{{ official.user_id }}</strong></div>
+                    <div><span class="text-slate-400 block text-[10px] font-bold uppercase">Assigned Tier</span> <strong class="text-slate-800">{{ official.get_role_display }}</strong></div>
+                </div>
+
+                <!-- Editable Personal Name -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">First Name <span class="text-red-500">*</span></label>
+                        {{ form.first_name }}
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Last Name <span class="text-red-500">*</span></label>
+                        {{ form.last_name }}
+                    </div>
+                </div>
+
+                <!-- Contact & Account Status -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Official Email Address <span class="text-red-500">*</span></label>
+                        {{ form.email }}
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Account Status <span class="text-red-500">*</span></label>
+                        {{ form.status }}
+                    </div>
+                </div>
+
+                <!-- Jurisdiction / State Info -->
+                {% if official.role != 'MOSPI_ADMIN' %}
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-200">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Assigned State / UT</label>
+                        {{ form.state }}
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">District / Jurisdiction Collectorate</label>
+                        {{ form.jurisdiction }}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Actions -->
+                <div class="pt-4 border-t border-slate-200 flex items-center justify-end space-x-3">
+                    <a href="{% url 'manage_users' %}" class="px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold rounded-lg border border-slate-300 transition-colors">
+                        Cancel
+                    </a>
+                    <button type="submit" class="px-5 py-2 bg-[#0b2545] hover:bg-[#13315c] text-white text-xs font-semibold rounded-lg shadow-sm transition-colors cursor-pointer">
+                        Save Profile Changes →
+                    </button>
+                </div>
+            </form>
+
+        </div>
+    </main>
+
+    <script>
+    document.querySelectorAll('input:not([type="checkbox"]):not([type="hidden"]), select').forEach(el => {
+        el.classList.add('w-full', 'bg-white', 'border', 'border-slate-300', 'rounded-lg', 'px-3', 'py-2', 'text-xs', 'text-slate-900', 'focus:ring-2', 'focus:ring-blue-900', 'focus:outline-none', 'shadow-xs');
+    });
+    </script>
+</body>
+</html>

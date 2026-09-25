@@ -3,64 +3,138 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Manage Hierarchy Users - MPLADS Portal</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Hierarchy Users — MPLADS e-Sakshi</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+    </style>
 </head>
-<body class="bg-gray-100 text-gray-800 min-h-screen flex flex-col justify-between">
+<body class="bg-[#f0f3f8] text-slate-800 min-h-screen flex flex-col justify-between antialiased">
 
-    <!-- Top Tricolor Accent Bar -->
-    <div class="h-1.5 w-full bg-gradient-to-r from-orange-500 via-white to-green-600"></div>
+    <!-- Top Indian Flag Color Strip -->
+    <div class="h-1.5 w-full bg-gradient-to-r from-[#FF9933] via-white to-[#138808]"></div>
 
-    <div class="max-w-7xl mx-auto px-6 py-10 w-full flex-1">
-        
-        <!-- Header -->
-        <div class="bg-blue-950 text-white border border-blue-900 rounded-2xl p-6 shadow-lg mb-8 flex justify-between items-center">
-            <div>
-                <span class="text-xs font-semibold uppercase tracking-wider bg-amber-500 text-blue-950 px-2.5 py-0.5 rounded shadow-sm">
-                    Apex Hierarchy Directory
-                </span>
-                <h1 class="text-2xl font-extrabold mt-1 tracking-tight">System Users & Officials</h1>
-                <p class="text-xs text-blue-200">Monitor and audit all active accounts across MoSPI, State, MP, and District levels</p>
+    <!-- Official Masthead Header -->
+    <header class="bg-white border-b border-slate-200 shadow-xs sticky top-0 z-30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center space-x-3.5">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/5/55/Emblem_of_India.svg" 
+                     alt="Emblem of India" 
+                     class="h-11 w-auto object-contain">
+                <div class="border-l border-slate-300 pl-3">
+                    <p class="text-[10px] font-bold uppercase tracking-widest text-[#0b2545]">सांख्यिकी और कार्यक्रम कार्यान्वयन मंत्रालय</p>
+                    <p class="text-[11px] font-semibold text-slate-700 leading-tight">Ministry of Statistics & Programme Implementation</p>
+                    <p class="text-[9px] text-slate-500 font-medium">Government of India</p>
+                </div>
             </div>
-            <div class="flex items-center gap-3">
-                <a href="{% url 'create_user' %}" class="bg-amber-500 hover:bg-amber-600 text-blue-950 px-4 py-2.5 rounded-xl text-xs font-bold transition-colors shadow-sm">
-                    + Provision New Official
+            
+            <div class="flex items-center space-x-3">
+                <a href="{% url 'create_user' %}" 
+                   class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-blue-900 hover:bg-blue-800 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors">
+                    <span>+ Provision Official</span>
                 </a>
-                <a href="{% url 'mospi_dashboard' %}" class="bg-white/10 hover:bg-white/20 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-colors border border-blue-800">
-                    ← Dashboard
+                <a href="{% url 'mospi_dashboard' %}" 
+                   class="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg border border-slate-300 transition-colors">
+                    ← Back to Dashboard
                 </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 py-6 w-full flex-1 space-y-5">
+        
+        <!-- Feedback Messages -->
+        {% if messages %}
+            <div class="space-y-2">
+                {% for message in messages %}
+                    <div class="p-3.5 rounded-xl text-xs font-medium border flex items-center justify-between
+                        {% if message.tags == 'error' %} bg-red-50 text-red-800 border-red-200
+                        {% elif message.tags == 'success' %} bg-emerald-50 text-emerald-800 border-emerald-200
+                        {% else %} bg-blue-50 text-blue-800 border-blue-200 {% endif %}">
+                        <span>{{ message }}</span>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Directory Header Card -->
+        <div class="bg-[#0b2545] text-white rounded-2xl p-6 shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+                <span class="inline-block text-[10px] font-mono uppercase tracking-wider bg-amber-400/20 text-amber-300 border border-amber-400/30 px-2.5 py-0.5 rounded mb-2">
+                    Apex RBAC Directory
+                </span>
+                <h1 class="text-xl sm:text-2xl font-black tracking-tight">Hierarchy Personnel Registry</h1>
+                <p class="text-xs text-slate-300 mt-1">
+                    Audit, modify official details, and manage clearances across all four tiers.
+                </p>
+            </div>
+            
+            <div class="bg-white/10 border border-white/15 px-4 py-2.5 rounded-xl text-right">
+                <span class="text-[10px] uppercase font-bold text-slate-300 block">Total Active Personnel</span>
+                <span class="text-2xl font-black text-white font-mono">{{ all_users.count }}</span>
             </div>
         </div>
 
         <!-- Users Table Card -->
-        <div class="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
-            <div class="p-5 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
-                <span class="text-xs font-bold uppercase tracking-wider text-blue-900">Registered Accounts ({{ all_users.count }})</span>
-                <span class="text-[11px] text-gray-500">Showing full administrative roster</span>
+        <div class="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
+            
+            <!-- Controls Bar: Title & Search Filter -->
+            <div class="p-4 sm:p-5 border-b border-slate-200 bg-slate-50/50 flex flex-col sm:flex-row justify-between items-center gap-3">
+                <div class="flex items-center gap-2 w-full sm:w-auto">
+                    <span class="h-2 w-2 rounded-full bg-blue-700"></span>
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-800">
+                        Commissioned Accounts Roster
+                    </span>
+                </div>
+
+                <!-- Instant Filter Input -->
+                <div class="w-full sm:w-72">
+                    <input type="text" 
+                           id="userSearchInput" 
+                           placeholder="Search by name, ID, username, or role..." 
+                           class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs text-slate-900 focus:ring-2 focus:ring-blue-900 focus:outline-none shadow-xs">
+                </div>
             </div>
 
+            <!-- Table -->
             <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse text-xs">
+                <table class="w-full text-left border-collapse text-xs" id="usersTable">
                     <thead>
-                        <tr class="bg-gray-100 text-gray-600 uppercase tracking-wider text-[10px] border-b border-gray-200">
-                            <th class="p-4">User ID / Username</th>
-                            <th class="p-4">Full Name</th>
-                            <th class="p-4">Role Tier</th>
-                            <th class="p-4">Jurisdiction</th>
-                            <th class="p-4">Status</th>
-                            <th class="p-4">Date Joined</th>
+                        <tr class="bg-slate-100 text-slate-600 uppercase tracking-wider text-[10px] border-b border-slate-200">
+                            <th class="py-3 px-4">User ID / Username</th>
+                            <th class="py-3 px-4">Official Name</th>
+                            <th class="py-3 px-4">Hierarchy Clearance</th>
+                            <th class="py-3 px-4">State / Territorial Scope</th>
+                            <th class="py-3 px-4 text-center">Account Status</th>
+                            <th class="py-3 px-4">Commissioned On</th>
+                            <th class="py-3 px-4 text-right">Actions</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-100">
+                    <tbody class="divide-y divide-slate-100">
                         {% for u in all_users %}
-                            <tr class="hover:bg-gray-50/80">
-                                <td class="p-4 font-bold text-blue-950">
-                                    {{ u.user_id|default:"N/A" }} <br>
-                                    <span class="text-[10px] font-normal text-gray-400">@{{ u.username }}</span>
+                            <tr class="hover:bg-blue-50/40 transition-colors user-row">
+                                <!-- ID & Login Handle -->
+                                <td class="py-3.5 px-4 font-mono">
+                                    <strong class="text-slate-900 search-target">{{ u.user_id|default:"N/A" }}</strong>
+                                    <span class="block text-[11px] text-slate-400 search-target">@{{ u.username }}</span>
                                 </td>
-                                <td class="p-4 font-semibold text-gray-800">{{ u.get_full_name|default:"Not Provided" }}</td>
-                                <td class="p-4">
-                                    <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase 
+
+                                <!-- Full Name & Email -->
+                                <td class="py-3.5 px-4">
+                                    <span class="font-bold text-slate-800 block search-target">
+                                        {{ u.get_full_name|default:"Not Provided" }}
+                                    </span>
+                                    <span class="text-[11px] text-slate-500 font-mono search-target">{{ u.email|default:"No email registered" }}</span>
+                                </td>
+
+                                <!-- Role Tier Badge -->
+                                <td class="py-3.5 px-4">
+                                    <span class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase search-target
                                         {% if u.role == 'MOSPI_ADMIN' %} bg-blue-100 text-blue-900 border border-blue-200
                                         {% elif u.role == 'STATE_NODAL' %} bg-indigo-100 text-indigo-900 border border-indigo-200
                                         {% elif u.role == 'MP' %} bg-emerald-100 text-emerald-900 border border-emerald-200
@@ -68,18 +142,54 @@
                                         {{ u.get_role_display }}
                                     </span>
                                 </td>
-                                <td class="p-4 text-gray-600">{{ u.jurisdiction.name|default:"Pan-India / Unassigned" }}</td>
-                                <td class="p-4">
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold 
-                                        {% if u.status == 'ACTIVE' %} bg-green-100 text-green-800 {% else %} bg-red-100 text-red-800 {% endif %}">
+
+                                <!-- Jurisdiction / Scope -->
+                                <td class="py-3.5 px-4 search-target">
+                                    {% if u.role == 'MOSPI_ADMIN' %}
+                                        <span class="text-slate-400 font-medium">National Apex (Pan-India)</span>
+                                    {% elif u.is_nominated_mp %}
+                                        <span class="text-amber-800 font-semibold bg-amber-50 border border-amber-200 px-2 py-0.5 rounded text-[10px]">
+                                            Pan-India (Nominated MP)
+                                        </span>
+                                    {% elif u.jurisdiction %}
+                                        <span class="text-slate-800 font-medium">{{ u.jurisdiction.name }}</span>
+                                        {% if u.state %}<span class="text-slate-400 text-[10px] block">({{ u.state }})</span>{% endif %}
+                                    {% elif u.state %}
+                                        <span class="text-slate-800 font-medium">{{ u.state }}</span>
+                                        <span class="text-slate-400 text-[10px] block">(State-Wide)</span>
+                                    {% else %}
+                                        <span class="text-slate-400 italic">Unassigned</span>
+                                    {% endif %}
+                                </td>
+
+                                <!-- Status Badge -->
+                                <td class="py-3.5 px-4 text-center">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold search-target
+                                        {% if u.status == 'ACTIVE' %} bg-emerald-50 text-emerald-700 border border-emerald-200
+                                        {% elif u.status == 'INACTIVE' %} bg-slate-100 text-slate-600 border border-slate-200
+                                        {% else %} bg-red-50 text-red-700 border border-red-200 {% endif %}">
                                         {{ u.get_status_display|default:"Active" }}
                                     </span>
                                 </td>
-                                <td class="p-4 text-gray-400 text-[11px]">{{ u.date_joined|date:"d M Y" }}</td>
+
+                                <!-- Date Joined -->
+                                <td class="py-3.5 px-4 text-slate-500 font-mono text-[11px]">
+                                    {{ u.date_joined|date:"d M Y" }}
+                                </td>
+
+                                <!-- Action Edit Link -->
+                                <td class="py-3.5 px-4 text-right">
+                                    <a href="{% url 'edit_official' u.id %}" 
+                                       class="inline-flex items-center gap-1 px-3 py-1 bg-white hover:bg-slate-100 text-[#0b2545] font-semibold text-xs rounded-lg border border-slate-300 shadow-2xs transition-colors">
+                                        <span>✏️ Edit</span>
+                                    </a>
+                                </td>
                             </tr>
                         {% empty %}
                             <tr>
-                                <td colspan="6" class="p-8 text-center text-gray-400">No users found in the registry.</td>
+                                <td colspan="7" class="py-12 px-4 text-center text-slate-400">
+                                    <p class="font-medium">No registered personnel found in the database.</p>
+                                </td>
                             </tr>
                         {% endfor %}
                     </tbody>
@@ -87,11 +197,31 @@
             </div>
         </div>
 
-    </div>
+    </main>
 
-    <!-- Footer -->
-    <footer class="bg-blue-950 text-gray-300 py-4 px-8 mt-6 border-t border-blue-900 text-xs text-center">
-        <p>Member of Parliament Local Area Development Scheme (MPLADS) Portal — User Management Directory</p>
+    <!-- Official Footer -->
+    <footer class="bg-white border-t border-slate-200 py-4 px-6 text-center text-[11px] text-slate-500 space-y-1">
+        <p>Member of Parliament Local Area Development Scheme (MPLADS) · Ministry of Statistics and Programme Implementation</p>
+        <p class="text-[10px] text-slate-400">National Informatics Centre (NIC) · Government of India</p>
     </footer>
+
+    <!-- Instant Search Script -->
+    <script>
+    document.getElementById('userSearchInput').addEventListener('input', function() {
+        const query = this.value.trim().toLowerCase();
+        const rows = document.querySelectorAll('.user-row');
+
+        rows.forEach(row => {
+            const targets = row.querySelectorAll('.search-target');
+            let matched = false;
+            targets.forEach(el => {
+                if (el.textContent.toLowerCase().includes(query)) {
+                    matched = true;
+                }
+            });
+            row.style.display = matched ? '' : 'none';
+        });
+    });
+    </script>
 </body>
 </html>

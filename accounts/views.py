@@ -1377,3 +1377,34 @@ def district_dashboard(request):
         'alert_count': len(alert_works),
     }
     return render(request, 'dashboards/district_dashboard.html', context)
+
+
+
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from .models import User
+from .forms import OfficialProfileUpdateForm
+
+@login_required
+def edit_official(request, user_id):
+    # Only MoSPI Admins are allowed to edit officials
+    if not request.user.is_mospi_admin:
+        messages.error(request, "Unauthorized access: MoSPI Administrator clearance required.")
+        return redirect('mospi_dashboard')
+
+    official = get_object_or_404(User, id=user_id)
+
+    if request.method == 'POST':
+        form = OfficialProfileUpdateForm(request.POST, instance=official)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Official profile for {official.get_full_name() or official.username} ({official.user_id}) updated successfully.")
+            return redirect('manage_users')
+    else:
+        form = OfficialProfileUpdateForm(instance=official)
+
+    return render(request, 'accounts/edit_official.html', {
+        'form': form,
+        'official': official,
+    })
